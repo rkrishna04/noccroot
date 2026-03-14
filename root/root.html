@@ -50,15 +50,14 @@
             const [isLocked, setIsLocked] = useState(false);
             const [isBackingUp, setIsBackingUp] = useState(false);
             const [backupLogs, setBackupLogs] = useState([
-                { id: 1, time: '2026-03-07 04:00:01', hash: 'sha256:7f8d...a21b', status: 'Success', size: '42.8 GB' },
-                { id: 2, time: '2026-03-06 04:00:01', hash: 'sha256:3a1c...eef9', status: 'Success', size: '42.7 GB' }
+                { id: 1, time: '2026-03-09 08:00:0', hash: 'sha256:7f8d...a21b', status: 'Success', size: '15 KB' },
+                { id: 2, time: '2026-03-06 04:30:0', hash: 'sha256:3a1c...eef9', status: 'Success', size: '10 KB' }
             ]);
             const [securityFeed, setSecurityFeed] = useState([
                 { id: 101, type: 'System', msg: "Dashboard Initialized", time: 'Just now' }
             ]);
             const [admins, setAdmins] = useState([
-                { id: 'JD', name: 'j.dawson_admin', status: 'active', lastSeen: '5m ago' },
-                { id: 'MK', name: 'm.knight_root', status: 'active', lastSeen: '2h ago' }
+                
             ]);
 
             // --- LOGIC: TRUE BACKUP ENGINE ---
