@@ -47,8 +47,7 @@
         const SAManagementApp = () => {
             // --- STATE: Super Admin List ---
             const [saAccounts, setSaAccounts] = useState([
-                { id: 1, name: 'j.dawson_admin', email: 'j.dawson@railway.gov.in', initial: 'JD', status: 'Active', active: true },
-                { id: 2, name: 'm.knight_root', email: 'm.knight@railway.gov.in', initial: 'MK', status: 'Active', active: true }
+                
             ]);
 
             // --- STATE: Form Controls ---
@@ -169,7 +168,7 @@
                                         <div className="space-y-1">
                                             <label className="text-[10px] uppercase font-bold text-[#5a868c] ml-1">Full Name</label>
                                             <input required type="text" className="w-full bg-[#e9f0f1] dark:bg-background-dark border border-[#d3e1e3] dark:border-[#3a414b] p-3 rounded-lg text-sm focus:border-primary outline-none" 
-                                                value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} placeholder="e.g. Rajesh Sharma" />
+                                                value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} placeholder="e.g. Krishna Rathwa" />
                                         </div>
                                         <div className="space-y-1">
                                             <label className="text-[10px] uppercase font-bold text-[#5a868c] ml-1">Email Address</label>
