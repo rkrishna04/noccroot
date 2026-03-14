@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N-DAMS | Galaxy Command</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: radial-gradient(circle at center, #1B2735 0%, #090A0F 100%);
+            overflow-x: hidden;
+        }
+
+        .stars-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+        }
+
+        @keyframes drift {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-2000px); }
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: drift linear infinite;
+        }
+
+        .glass-sidebar {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* NEW VIBRANT GLASS BUTTONS */
+        .module-btn {
+            background: rgba(70, 131, 180, 0.292);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .module-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: 0.5s;
+        }
+
+        .module-btn:hover::before {
+            left: 100%;
+        }
+
+        .module-btn:hover {
+            transform: scale(1.08);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Unique Glow for each color type */
+        .glow-blue:hover { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); background: rgba(59, 130, 246, 0.15); }
+        .glow-purple:hover { box-shadow: 0 0 20px rgba(168, 85, 247, 0.5); background: rgba(168, 85, 247, 0.15); }
+        .glow-cyan:hover { box-shadow: 0 0 20px rgba(6, 182, 212, 0.5); background: rgba(6, 182, 212, 0.15); }
+        .glow-emerald:hover { box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.15); }
+    </style>
+</head>
+<body class="flex min-h-screen text-slate-200">
+
+    <div class="stars-container" id="starField"></div>
+
+    <aside class="w-64 glass-sidebar h-screen sticky top-0 p-6 hidden md:block">
+        <div class="mb-10">
+            <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">NOCC ROOT</h2>
+            <p class="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold">Administrative Access</p>
+        </div>
+        
+        <nav class="space-y-3">
+            <a href="admin.html" class="flex items-center space-x-3 p-3 text-slate-400 hover:text-white transition">
+                <i class="fa-solid fa-rocket"></i>
+                <span class="text-sm">Management Hub</span>
+            </a>
+            <a href="datamanagement.html" class="flex items-center space-x-3 p-3 bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 rounded-xl">
+                <i class="fa-solid fa-database"></i>
+                <span class="text-sm font-medium">Data Management</span>
+            </a>
+                          
+            <div className="pt-10">
+    <button 
+        onClick={handleLogout}
+        className="flex items-center space-x-3 p-3 text-red-400 hover:bg-red-900/20 w-full rounded-xl transition-all justify-start"
+    >
+                 
+        </nav>
+    </aside>
+
+    <main class="flex-1 p-8">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-bold text-white tracking-tight">Admin Control Center</h1>
+                <p class="text-slate-400">Data is a blur until you have the right optics. <span class="text-blue-400">We provide the focus. </span></p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold border border-white/20 shadow-2xl">
+                AD
+            </div>
+        </header>
+
+        <section class="mb-12">
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="h-px w-full bg-gradient-to-r from-indigo-500/50 to-transparent"></div>
+                <h2 class="text-sm font-black uppercase tracking-[0.4em] text-indigo-400 whitespace-nowrap">Quick Module Access</h2>
+                <div class="h-px w-full bg-gradient-to-r from-indigo-500/50 to-transparent"></div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-5" id="moduleGrid">
+                </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. Generate Stars
+        const starField = document.getElementById('starField');
+        for (let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 2 + 1 + 'px';
+            star.style.width = size;
+            star.style.height = size;
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDuration = (Math.random() * 100 + 50) + 's';
+            star.style.opacity = Math.random();
+            starField.appendChild(star);
+        }
+
+        // 2. Module Config
+        const modules = [
+            'FOIS', 'UTS', 'EARTH'
+        ];
+
+        const grid = document.getElementById('moduleGrid');
+        
+        modules.forEach((mod) => {
+    const btn = document.createElement('button');
+    
+    // Random Theme Selection
+    const themes = [
+        {color: 'text-blue-400', glow: 'glow-blue'},
+        {color: 'text-purple-400', glow: 'glow-purple'},
+        {color: 'text-cyan-400', glow: 'glow-cyan'},
+        {color: 'text-emerald-400', glow: 'glow-emerald'}
+    ];
+    const theme = themes[Math.floor(Math.random() * themes.length)];
+
+    btn.className = `module-btn py-6 px-4 rounded-2xl flex flex-col items-center justify-center space-y-3 group ${theme.glow}`;
+    
+    // NEW LOGIC: Check which module is being clicked
+    btn.onclick = () => {
+        if (mod === 'FOIS') {
+            window.location.href = 'module-fois.html';
+        } else if (mod === 'UTS') {
+            window.location.href = 'uts.html';  // Adjust this as needed
+        } else if (mod === 'EARTH') {
+            window.location.href = 'earth.html'; // Adjust this as needed
+        } 
+        else {
+            window.location.href = `module-${mod.toLowerCase()}.html`;
+        }
+    };
+    
+    btn.innerHTML = `
+        <i class="fa-solid fa-atom ${theme.color} text-2xl group-hover:rotate-180 transition-transform duration-700"></i>
+        <span class="text-sm font-black tracking-widest text-white group-hover:scale-110 transition-transform uppercase">${mod}</span>
+    `;
+    grid.appendChild(btn);
+});
+
+const handleLogout = () => {
+    if (!confirm("Logout from NOCC ROOT ?")) return;
+
+    // Optional: add visual feedback
+    document.body.style.opacity = '0.4';
+    document.body.style.transition = 'opacity 0.6s ease';
+
+    setTimeout(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.replace('/index.html');  // replace → no back button history
+    }, 600);
+};
+    </script>
+</body>
+
+</html>
+
+

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOIS | Full Inventory Detail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%);
+            color: #1e293b;
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .modal-overlay {
+            transition: opacity 0.3s ease;
+            display: none;
+            opacity: 0;
+        }
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        tr:hover { background: rgba(79, 70, 229, 0.05) !important; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div class="flex items-center space-x-4">
+            <button onclick="window.history.back()" class="glass-panel p-3 rounded-xl hover:bg-black/5 transition text-indigo-600 group">
+                <i class="fa-solid fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+            </button>
+            <div>
+                <h1 class="text-2xl font-bold tracking-wider uppercase text-slate-900">FOIS <span class="text-indigo-600 text-sm font-light">Details Management </span></h1>
+                <p class="text-[10px] text-slate-500 uppercase tracking-[0.3em]">Operational Inventory Control</p>
+            </div>
+        </div>
+        
+        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+            <div class="relative flex-1 md:flex-none">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search node name..." class="glass-panel pl-9 pr-4 py-2 rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 outline-none w-full">
+            </div>
+            <button onclick="openAddModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-lg transition flex items-center">
+                <i class="fa-solid fa-plus mr-2"></i> Add Router
+            </button>
+            <button onclick="exportToCSV()" class="glass-panel px-4 py-2 rounded-lg text-xs font-bold hover:border-emerald-500 transition flex items-center text-emerald-700">
+                <i class="fa-solid fa-file-csv mr-2 text-emerald-600"></i> Export
+            </button>
+        </div>
+    </header>
+
+    <div class="glass-panel rounded-3xl overflow-hidden shadow-2xl border border-black/5">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse whitespace-nowrap">
+                <thead>
+                    <tr class="bg-indigo-50 text-indigo-700 uppercase text-[10px] font-black tracking-widest">
+                        <th class="p-4 border-b border-black/5 text-center">Sr.</th>
+                        <th class="p-4 border-b border-black/5">Zone/Div</th>
+                        <th class="p-4 border-b border-black/5">Category</th>
+                        <th class="p-4 border-b border-black/5">Tier Status</th>
+                        <th class="p-4 border-b border-black/5 bg-indigo-100/30">Node Name</th>
+                        <th class="p-4 border-b border-black/5">Profile</th>
+                        <th class="p-4 border-b border-black/5">Install Date</th>
+                        <th class="p-4 border-b border-black/5 text-rose-600">EOL/EOS</th>
+                        <th class="p-4 border-b border-black/5 text-center">Age</th>
+                        <th class="p-4 border-b border-black/5 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-[11px] font-medium text-slate-600 divide-y divide-black/5" id="foisTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="routerModal" class="modal-overlay fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-100">
+            <h3 id="modalTitle" class="text-lg font-bold text-slate-900 mb-4">Add New Router</h3>
+            <form id="routerForm" onsubmit="handleFormSubmit(event)" class="grid grid-cols-2 gap-4">
+                <input type="hidden" id="editIndex">
+                <div class="col-span-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Node Name</label>
+                    <input required id="fNode" type="text" class="w-full border border-slate-200 rounded-xl p-2 text-sm outline-none focus:border-indigo-500">
+                </div>
+                <div class="col-span-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Tier Status</label>
+                    <select id="fTier" class="w-full border border-slate-200 rounded-xl p-2 text-sm outline-none">
+                        <option value="Tier 3">Tier 3</option>
+                        <option value="Non_Tier-1">Non-Tier 1</option>
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Device Profile</label>
+                    <input required id="fProfile" type="text" placeholder="e.g. Cisco ISR4431" class="w-full border border-slate-200 rounded-xl p-2 text-sm outline-none">
+                </div>
+                <div class="col-span-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Install Date</label>
+                    <input required id="fInstall" type="date" class="w-full border border-slate-200 rounded-xl p-2 text-sm outline-none">
+                </div>
+                <div class="col-span-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">AMC Detail</label>
+                    <input id="fAmc" type="text" class="w-full border border-slate-200 rounded-xl p-2 text-sm outline-none">
+                </div>
+                <div class="col-span-2 flex space-x-3 mt-4">
+                    <button type="button" onclick="closeModal('routerModal')" class="flex-1 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 uppercase">Cancel</button>
+                    <button type="submit" class="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase">Save Router</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal-overlay fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div class="flex items-center space-x-4 mb-6">
+                <div class="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center text-rose-600"><i class="fa-solid fa-trash-can"></i></div>
+                <div><h3 class="text-lg font-bold">Delete Record?</h3><p class="text-xs text-slate-500">Provide a reason for the audit log.</p></div>
+            </div>
+            <textarea id="deleteReason" rows="3" class="w-full border rounded-xl p-3 text-sm outline-none focus:border-rose-500 mb-4" placeholder="Reason..."></textarea>
+            <div class="flex space-x-3">
+                <button onclick="closeModal('deleteModal')" class="flex-1 py-3 border rounded-xl text-xs font-bold text-slate-500">CANCEL</button>
+                <button onclick="executeDelete()" class="flex-1 py-3 bg-rose-600 text-white rounded-xl text-xs font-bold">DELETE</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let fullExcelData = [
+            { sr: 1, zone: "WR", div: "BRC", cat: "ROUTER", tier: "Tier 3", node: "PRTN-R1", profile: "HP MSR3044", install: "2019-10-10", eol: "2027-10-09", eos: "2027-10-09", amc: "Maintain by KWS", age: "5" },
+            { sr: 2, zone: "WR", div: "BRC", cat: "ROUTER", tier: "Tier 3", node: "PRTN-R2", profile: "HP MSR3044", install: "2019-10-10", eol: "2027-10-09", eos: "2027-10-09", amc: "Maintain by GNFCBH", age: "5" },
+            { sr: 3, zone: "WR", div: "BRC", cat: "ROUTER", tier: "Non_Tier-1", node: "RNO", profile: "CISCO 1841", install: "2024-02-27", eol: "2032-02-20", eos: "2032-02-20", amc: "Maintain by KWS", age: "1" }
+        ];
+
+        let deleteTargetIdx = null;
+
+        function renderTable(dataToDisplay = fullExcelData) {
+            const tableBody = document.getElementById('foisTableBody');
+            tableBody.innerHTML = '';
+            dataToDisplay.forEach((item, index) => {
+                const row = document.createElement('tr');
+                const tierBadge = item.tier === 'Tier 3' 
+                    ? '<span class="text-amber-700 bg-amber-100 px-2 py-0.5 rounded border border-amber-200">Tier 3</span>' 
+                    : '<span class="text-cyan-700 bg-cyan-100 px-2 py-0.5 rounded border border-cyan-200">Non-Tier 1</span>';
+
+                row.innerHTML = `
+                    <td class="p-4 font-mono text-slate-400 text-center">${index + 1}</td>
+                    <td class="p-4 font-bold text-slate-800">${item.zone}/${item.div}</td>
+                    <td class="p-4 text-indigo-600 font-bold text-[9px] uppercase"><i class="fa-solid fa-server mr-1"></i> ${item.cat}</td>
+                    <td class="p-4">${tierBadge}</td>
+                    <td class="p-4 font-black text-slate-900 bg-indigo-50/50">${item.node}</td>
+                    <td class="p-4 text-slate-500 font-semibold">${item.profile}</td>
+                    <td class="p-4 font-mono text-slate-500">${item.install}</td>
+                    <td class="p-4 font-mono text-rose-600 font-semibold text-[10px]">${item.eol}</td>
+                    <td class="p-4 text-center"><span class="bg-indigo-600 text-white px-2 py-1 rounded-full text-[9px] font-bold">${item.age}Y</span></td>
+                    <td class="p-4 text-center">
+                        <div class="flex items-center justify-center space-x-2">
+                            <button onclick="editRecord(${index})" class="w-8 h-8 rounded-lg border text-indigo-600 hover:bg-indigo-600 hover:text-white transition"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="openDeleteModal(${index})" class="w-8 h-8 rounded-lg border text-rose-600 hover:bg-rose-600 hover:text-white transition"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Search logic
+        function searchTable() {
+            const val = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = fullExcelData.filter(item => item.node.toLowerCase().includes(val));
+            renderTable(filtered);
+        }
+
+        // Form Logic
+        function openAddModal() {
+            document.getElementById('routerForm').reset();
+            document.getElementById('editIndex').value = '';
+            document.getElementById('modalTitle').innerText = 'Add New Router';
+            document.getElementById('routerModal').classList.add('active');
+        }
+
+        function editRecord(idx) {
+            const item = fullExcelData[idx];
+            document.getElementById('editIndex').value = idx;
+            document.getElementById('fNode').value = item.node;
+            document.getElementById('fTier').value = item.tier;
+            document.getElementById('fProfile').value = item.profile;
+            document.getElementById('fInstall').value = item.install;
+            document.getElementById('fAmc').value = item.amc;
+            document.getElementById('modalTitle').innerText = 'Edit Router';
+            document.getElementById('routerModal').classList.add('active');
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const idx = document.getElementById('editIndex').value;
+            const routerObj = {
+                sr: fullExcelData.length + 1,
+                zone: "WR", div: "BRC", cat: "ROUTER",
+                node: document.getElementById('fNode').value,
+                tier: document.getElementById('fTier').value,
+                profile: document.getElementById('fProfile').value,
+                install: document.getElementById('fInstall').value,
+                eol: "2032-12-31", eos: "2032-12-31",
+                amc: document.getElementById('fAmc').value,
+                age: "1"
+            };
+
+            if (idx === "") {
+                fullExcelData.push(routerObj);
+            } else {
+                fullExcelData[idx] = {...fullExcelData[idx], ...routerObj};
+            }
+            renderTable();
+            closeModal('routerModal');
+        }
+
+        // Delete Logic
+        function openDeleteModal(idx) {
+            deleteTargetIdx = idx;
+            document.getElementById('deleteReason').value = '';
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function executeDelete() {
+            const reason = document.getElementById('deleteReason').value.trim();
+            if(!reason) return alert("Reason required!");
+            fullExcelData.splice(deleteTargetIdx, 1);
+            renderTable();
+            closeModal('deleteModal');
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        // Export logic
+        function exportToCSV() {
+            let csv = "Node,Zone,Tier,Profile,InstallDate,Age\n";
+            fullExcelData.forEach(i => {
+                csv += `${i.node},${i.zone},${i.tier},${i.profile},${i.install},${i.age}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'FOIS_Inventory.csv';
+            a.click();
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>

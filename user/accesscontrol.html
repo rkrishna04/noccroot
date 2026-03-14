@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOCC ROOT | Access Control</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet"/>
+
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+        :root {
+            --ir-blue: #003399;
+            --ir-gold: #FFD700;
+            --primary-teal: #1a545b;
+            --sidebar-width: 288px;
+            --sidebar-min-width: 80px;
+        }
+        .sidebar { background-color: var(--ir-blue); width: var(--sidebar-width); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar.minimized { width: var(--sidebar-min-width); }
+        .sidebar.minimized .nav-text, .sidebar.minimized .sidebar-header-text, .sidebar.minimized .user-details, .sidebar.minimized .section-label { display: none; }
+        .sidebar.minimized .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+        .nav-item { border-left: 4px solid transparent; transition: all 0.2s ease; }
+        .nav-item.active { background: rgba(255, 255, 255, 0.1); border-left-color: var(--ir-gold); color: white; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { "primary": "#1a545b", "background-light": "#f8fafa" } } }
+        }
+    </script>
+</head>
+
+<body class="bg-background-light flex h-screen overflow-hidden text-slate-900">
+
+    <aside id="sidebar" class="sidebar flex flex-col flex-shrink-0 z-20 shadow-xl">
+        <div class="sidebar-header p-6 flex items-center space-x-3 border-b border-blue-900/50">
+            <div class="bg-white p-2 rounded-lg shadow-lg flex-shrink-0"><i class="fa-solid fa-train-subway text-[#003399] text-xl"></i></div>
+            <div class="sidebar-header-text overflow-hidden">
+                <h2 class="text-white font-black tracking-tighter text-lg leading-none">NOCC ROOT</h2>
+                <p class="text-blue-300 text-[10px] uppercase font-bold tracking-widest mt-1">Indian Railways</p>
+            </div>
+        </div>
+
+        <button onclick="toggleSidebar()" class="absolute -right-3 top-20 bg-white border border-slate-200 rounded-full w-6 h-6 flex items-center justify-center text-[10px] text-blue-900 shadow-md z-30">
+            <i id="toggle-icon" class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <nav class="flex-1 mt-6 px-3 space-y-1">
+            <p class="section-label text-blue-400 text-[10px] font-bold uppercase px-4 mb-2 tracking-[0.2em]">Navigation</p>
+            <a href="user.html" class="nav-item flex items-center space-x-3 py-3 px-4 rounded-lg text-blue-100/70 hover:text-white">
+                <i class="fa-solid fa-layer-group w-5"></i><span class="nav-text text-sm font-bold">Data Modules Hub</span>
+            </a>
+            <a href="digidoc.html" class="nav-item flex items-center space-x-3 py-3 px-4 rounded-lg text-blue-100/70 hover:text-white">
+                <i class="fa-solid fa-copy w-5"></i><span class="nav-text text-sm font-bold">Digital Documents</span>
+            </a>
+            <a href="userprofile.html" class="nav-item active flex items-center space-x-3 py-3 px-4 rounded-lg text-white">
+                <i class="fa fa-user w-5"></i><span class="nav-text text-sm font-bold">Profile Settings</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 flex-shrink-0 z-10">
+            <div class="flex items-center space-x-4">
+                <h3 class="font-bold text-slate-500 text-sm uppercase tracking-widest">Access & Security</h3>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div class="text-right font-mono border-r pr-6 border-slate-200">
+                    <div id="header-clock" class="text-slate-800 font-bold text-sm">00:00:00</div>
+                    <div id="header-date" class="text-[9px] text-slate-400 font-bold uppercase">24 FEB 2026</div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto custom-scrollbar">
+            <div class="max-w-[1200px] mx-auto px-8 py-10">
+                
+                <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200 pb-8">
+                    <div>
+                        <h1 class="text-slate-900 text-4xl font-extrabold tracking-tight">Access Control</h1>
+                        <p class="text-slate-500 mt-2 text-lg">Manage authentication methods, passwords, and security protocols.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button class="px-6 py-2.5 rounded-lg border border-slate-300 text-sm font-bold hover:bg-white transition-all">Cancel</button>
+                        <button class="px-6 py-2.5 rounded-lg bg-primary text-white text-sm font-bold shadow-lg shadow-teal-900/20 transition-all">Update Security</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                    <aside class="lg:col-span-3 space-y-6">
+                        <nav class="flex flex-col space-y-1">
+                            <a href="userprofile.html" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-white border border-transparent hover:border-slate-200 transition-all font-semibold">
+                                <span class="material-symbols-outlined">badge</span><span class="text-sm">General Profile</span>
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-white font-bold shadow-md shadow-primary/20">
+                                <span class="material-symbols-outlined">security</span><span class="text-sm">Access Control</span>
+                            </a>
+                        </nav>
+                        
+                        <div class="p-5 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[10px] font-black uppercase text-emerald-700">Security Score</span>
+                                <span class="text-emerald-700 font-bold text-sm">92%</span>
+                            </div>
+                            <div class="w-full bg-emerald-200 rounded-full h-1.5">
+                                <div class="bg-emerald-600 h-1.5 rounded-full" style="width: 92%"></div>
+                            </div>
+                            <p class="text-[11px] text-emerald-600 mt-3 font-medium">Your account meets high-security railway standards.</p>
+                        </div>
+                    </aside>
+
+                    <div class="lg:col-span-9 space-y-8 pb-20">
+                        
+                        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div class="px-8 py-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                                <h2 class="text-sm font-black uppercase tracking-widest text-slate-500">Authentication</h2>
+                                <span class="text-[10px] px-2 py-1 bg-amber-100 text-amber-700 rounded font-bold">Password expires in 14 days</span>
+                            </div>
+                            <div class="p-8 space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold text-slate-500 uppercase">Current Password</label>
+                                        <input type="password" class="w-full px-4 py-3 rounded-xl border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all" placeholder="••••••••••••">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold text-slate-500 uppercase">New Password</label>
+                                        <input type="password" class="w-full px-4 py-3 rounded-xl border-slate-200 focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all" placeholder="Min 12 characters">
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div class="p-8 flex items-center justify-between">
+                                <div class="flex items-start gap-4">
+                                    <div class="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                        <span class="material-symbols-outlined text-3xl">phonelink_lock</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-slate-900">Two-Factor Authentication (2FA)</h3>
+                                        <p class="text-sm text-slate-500 mt-1">Add an extra layer of security via RailNet Mobile OTP.</p>
+                                    </div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" checked class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                                </label>
+                            </div>
+                        </section>
+
+                        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div class="px-8 py-5 border-b border-slate-100 bg-slate-50/50">
+                                <h2 class="text-sm font-black uppercase tracking-widest text-slate-500">Active Technical Sessions</h2>
+                            </div>
+                            <div class="divide-y divide-slate-100">
+                                <div class="p-6 flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        <span class="material-symbols-outlined text-slate-400 text-3xl">desktop_windows</span>
+                                        <div>
+                                            <p class="text-sm font-bold">Windows Desktop • New Delhi HQ</p>
+                                            <p class="text-[11px] text-emerald-600 font-bold">Current Session</p>
+                                        </div>
+                                    </div>
+                                    <button class="text-xs font-bold text-slate-400 cursor-not-allowed">Active</button>
+                                </div>
+                                <div class="p-6 flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        <span class="material-symbols-outlined text-slate-400 text-3xl">smartphone</span>
+                                        <div>
+                                            <p class="text-sm font-bold">iPhone 15 Pro • Mumbai Division</p>
+                                            <p class="text-[11px] text-slate-500">Last active: 2 hours ago</p>
+                                        </div>
+                                    </div>
+                                    <button class="text-xs font-bold text-red-600 hover:underline">Revoke Access</button>
+                                </div>
+                            </div>
+                        </section>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const icon = document.getElementById('toggle-icon');
+            sidebar.classList.toggle('minimized');
+            icon.classList.toggle('fa-chevron-left');
+            icon.classList.toggle('fa-chevron-right');
+        }
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('header-clock').textContent = now.toLocaleTimeString('en-GB');
+            document.getElementById('header-date').textContent = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>

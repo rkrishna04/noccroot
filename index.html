@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Railways | Luxury Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #020617; /* Deepest night blue */
+        }
+
+        /* Cinematic Background Container */
+        .universe {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 50% 100%, #1e3a8a 0%, #020617 70%);
+            z-index: -1;
+        }
+
+        /* Moving Stars/Dust */
+        .stars {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(white 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.2;
+            animation: starScroll 100s linear infinite;
+        }
+
+        /* Parallax Mountains */
+        .mountain-layer {
+            position: absolute;
+            bottom: 0;
+            width: 200%;
+            height: 300px;
+            background: url('https://www.transparenttextures.com/patterns/asfalt-dark.png');
+            background-color: #0f172a;
+            clip-path: polygon(0% 100%, 10% 80%, 20% 90%, 35% 70%, 50% 85%, 65% 65%, 80% 90%, 100% 70%, 100% 100%);
+            opacity: 0.5;
+            animation: moveLandscape 40s linear infinite;
+        }
+
+        /* Glowing Railway Track */
+        .rail-track {
+            position: absolute;
+            bottom: 60px;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            box-shadow: 0 0 20px #2563eb;
+        }
+
+        .sleepers {
+            position: absolute;
+            bottom: 40px;
+            width: 200%;
+            height: 20px;
+            background: repeating-linear-gradient(90deg, #1e293b 0, #1e293b 10px, transparent 10px, transparent 80px);
+            animation: trackSpeed 0.8s linear infinite;
+        }
+
+        /* The Sleek Train (Vande Bharat style) */
+        .train-express {
+            position: absolute;
+            bottom: 62px;
+            left: -100%;
+            width: 800px;
+            height: 45px;
+            background: linear-gradient(90deg, #1e293b, #334155 80%, #f8fafc);
+            border-radius: 5px 80px 5px 5px;
+            box-shadow: 50px 0 100px rgba(59, 130, 246, 0.5);
+            animation: trainRush 12s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Light inside train windows */
+        .train-express::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 12px;
+            top: 10px;
+            background: repeating-linear-gradient(90deg, #fde047 0, #fde047 30px, transparent 30px, transparent 60px);
+            filter: blur(1px);
+            opacity: 0.8;
+        }
+
+        @keyframes trackSpeed {
+            from { transform: translateX(0); }
+            to { transform: translateX(-90px); }
+        }
+
+        @keyframes trainRush {
+            0% { left: -100%; }
+            30% { left: 120%; }
+            100% { left: 120%; }
+        }
+
+        @keyframes moveLandscape {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        @keyframes starScroll {
+            from { transform: translateY(0); }
+            to { transform: translateY(-1000px); }
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-style {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-style:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body class="h-screen flex items-center justify-center p-6">
+
+    <div class="universe">
+        <div class="stars"></div>
+        <div class="mountain-layer"></div>
+        <div class="sleepers"></div>
+        <div class="rail-track"></div>
+        <div class="train-express"></div>
+    </div>
+
+    <div class="glass-card w-full max-w-md rounded-[2rem] p-10 relative overflow-hidden">
+        <div class="absolute -top-24 -left-24 w-48 h-48 bg-blue-600 rounded-full blur-[100px] opacity-20"></div>
+        
+        <div class="relative z-10">
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-700 mb-4 shadow-xl">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </div>
+                <h1 class="text-4xl font-extrabold text-white tracking-tight">RAIL<span class="text-blue-500">NET</span></h1>
+                <p class="text-slate-400 mt-2 font-light">Railways Gateway</p>
+            </div>
+
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Identity</label>
+                    <input type="email" id="email" required 
+                        class="input-style w-full px-5 py-4 rounded-xl outline-none"
+                        placeholder="Employee Email">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Credentials</label>
+                    <input type="password" id="password" required 
+                        class="input-style w-full px-5 py-4 rounded-xl outline-none"
+                        placeholder="••••••••">
+                </div>
+
+                <button type="submit" 
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-2xl transition duration-300 transform hover:-translate-y-1 active:scale-95">
+                    AUTHENTICATE
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    const mockUsers = [
+        { email: "s@t.com", password: "1234", role: "super_admin", path: "super-admin/super_admin.html" },
+        { email: "a@t.com", password: "1234", role: "admin", path: "admin/admin.html" },
+        { email: "u@t.com", password: "1234", role: "user", path: "user/user.html" },
+        { email: "r@t.com", password: "1234", role: "user", path: "root/root.html" }
+    ];
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const emailInput = document.getElementById('email').value;
+        const passwordInput = document.getElementById('password').value;
+        const user = mockUsers.find(u => u.email === emailInput && u.password === passwordInput);
+
+        if (user) {
+            // Success animation or redirect
+            document.querySelector('.glass-card').style.opacity = '0';
+            document.querySelector('.glass-card').style.transform = 'scale(0.9)';
+            document.querySelector('.glass-card').style.transition = 'all 0.5s ease';
+            setTimeout(() => {
+                window.location.href = user.path;
+            }, 500);
+        } else {
+            alert("Security Breach: Unauthorized Access Detected.");
+        }
+    });
+    </script>
+</body>
+
+</html>
+
+
+
+
+

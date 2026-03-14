@@ -1,0 +1,13 @@
+Frontend:  React + Tailwind CSS (UI) + Axios (API calls)
+Backend:   Node.js + Express.js (API)
+Database:  MongoDB Atlas (cloud) or Firebase Firestore
+Auth:      JWT tokens or Firebase Auth
+Deployment: Vercel (Frontend) + Render (Backend)
+
+
+✅ Node.js + NPM
+✅ MongoDB (Local or Cloud)
+✅ Git (Version Control)
+✅ Visual Studio Code (Code Editor)
+✅ Postman (API Testing)
+✅ Required VS Code Extensions

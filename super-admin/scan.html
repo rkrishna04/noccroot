@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOCC ROOT | Digital Document</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1a535b",
+                        "background-dark": "#1a1e23",
+                        "surface-dark": "#24292f",
+                        "accent-gold": "#C8AA6E",
+                        "accent-red": "#D85B42",
+                        "accent-green": "#078834",
+                        "text-primary": "#e9f0f1",
+                        "text-secondary": "#5a868c"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1a1e23; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1a535b; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #2b6d78; }
+    </style>
+</head>
+
+<body class="bg-background-dark text-text-primary flex h-screen overflow-hidden font-display">
+
+    <aside id="sidebar" class="w-64 flex-shrink-0 border-r border-[#2b313a] flex flex-col bg-background-dark z-20 transition-all duration-300">
+        <div class="p-6 border-b border-[#2b313a]">
+            <div class="flex items-center gap-3">
+                <div class="size-9 bg-primary/90 rounded-lg flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-train-subway text-lg"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold leading-tight">Super Admin System</h2>
+                    <p class="text-xs text-text-secondary uppercase tracking-wide">v4.2.0-stable</p>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="toggleSidebar()" class="absolute -right-3 top-20 bg-surface-dark border border-[#3a414b] rounded-full w-7 h-7 flex items-center justify-center text-xs text-text-secondary hover:text-primary shadow-md transition z-30">
+            <i id="toggle-icon" class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <nav class="flex-1 mt-6 px-3 space-y-1 overflow-y-auto custom-scrollbar">
+            <a href="data.html" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-secondary hover:bg-[#2b313a] transition">
+                <span class="material-symbols-outlined text-sm">folder</span>
+                <span class="text-sm font-medium">Data Modules</span>
+            </a>
+            <a href="super_admin.html" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-secondary hover:bg-[#2b313a] transition">
+                <span class="material-symbols-outlined text-sm">person_add</span>
+                <span class="text-sm font-medium">Provisioning</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-primary/10 text-primary font-semibold border-l-4 border-primary">
+                <span class="material-symbols-outlined text-sm">description</span>
+                <span class="text-sm font-medium">Digital Documents</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-[#2b313a] bg-[#1a1e23]/70">
+            <div class="flex items-center gap-3 p-2">
+                <div class="w-9 h-9 rounded-full bg-primary/80 flex items-center justify-center text-white font-bold text-sm shadow-inner">AD</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium truncate">ABC abc</p>
+                    <p class="text-xs text-text-secondary">USER</p>
+                </div>
+                <i class="fa-solid fa-right-from-bracket text-text-secondary hover:text-accent-red cursor-pointer transition"></i>
+            </div>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="h-16 border-b border-[#2b313a] flex items-center justify-between px-8 bg-background-dark">
+            <div class="flex items-center gap-4">
+                <div id="header-logo" class="hidden items-center gap-3">
+                    <i class="fa-solid fa-train-subway text-primary text-xl"></i>
+                    <span class="font-bold text-lg tracking-tight">NOCC ROOT</span>
+                </div>
+                <h1 class="text-lg font-bold uppercase tracking-wide hidden md:block">Digital Document</h1>
+                <span class="bg-accent-green/20 text-accent-green px-3 py-1 rounded text-xs font-bold uppercase tracking-widest">
+                    LIVE
+                </span>
+            </div>
+
+            <div class="flex items-center gap-6 font-mono text-sm">
+                <div class="text-right">
+                    <div id="header-clock" class="font-semibold">00:00:00</div>
+                    <div id="header-date" class="text-xs text-text-secondary uppercase tracking-wider">14 MAR 2026</div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-8 custom-scrollbar bg-background-dark">
+            <div class="mb-8 flex flex-wrap gap-4 items-center">
+                <div class="relative">
+                    <label class="px-6 py-3 bg-primary hover:bg-[#2b6d78] text-white rounded-lg text-sm font-semibold cursor-pointer flex items-center gap-2 shadow-md transition">
+                        <i class="fa-solid fa-upload"></i>
+                        Upload PDF(s)
+                    </label>
+                    <input type="file" id="pdfInput" accept="application/pdf" multiple class="hidden">
+                </div>
+
+                <input type="text" id="docSearch" onkeyup="filterDocs()" placeholder="Search documents..." 
+                       class="px-5 py-3 bg-[#1a1e23] border border-[#3a414b] rounded-lg text-sm focus:border-primary focus:ring-1 focus:ring-primary/50 w-72 transition">
+
+                <button onclick="filterCategory('All')" class="px-6 py-3 bg-[#2b313a] hover:bg-[#3a414b] text-white rounded-lg text-sm font-semibold transition">
+                    All
+                </button>
+            </div>
+
+            <div id="dropZone" class="mb-10 p-10 border-2 border-dashed border-[#3a414b] rounded-xl text-center bg-surface-dark/50 hover:bg-surface-dark/70 transition cursor-pointer min-h-[160px] flex flex-col items-center justify-center">
+                <i class="fa-solid fa-cloud-arrow-up text-5xl text-text-secondary mb-4 opacity-70"></i>
+                <p class="text-base font-medium text-text-secondary">Drop PDF files here or click to select</p>
+                <p class="text-xs text-text-secondary mt-2 opacity-80">PDF only • Max 15 MB per file</p>
+            </div>
+
+            <div id="docGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div id="docModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div class="bg-surface-dark rounded-2xl w-full max-w-6xl max-h-[96vh] flex flex-col border border-[#3a414b] shadow-2xl">
+            <div class="px-6 py-4 border-b border-[#3a414b] flex items-center justify-between">
+                <h2 id="modalTitle" class="text-xl font-bold">Document Preview</h2>
+                <button onclick="closeModal()" class="text-text-secondary hover:text-accent-red text-3xl font-bold transition">&times;</button>
+            </div>
+            <div class="flex-1 overflow-hidden bg-[#1a1e23] p-6">
+                <div class="preview-area h-full rounded-xl overflow-hidden border border-[#3a414b] bg-black/40"></div>
+            </div>
+            <div class="px-6 py-4 border-t border-[#3a414b] text-right">
+                <button onclick="closeModal()" class="px-8 py-3 bg-[#2b313a] hover:bg-[#3a414b] text-white rounded-lg font-medium transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ────────────────────────────────────────────────
+        let uploadedDocs = [];
+
+        const dropZone   = document.getElementById('dropZone');
+        const pdfInput   = document.getElementById('pdfInput');
+        const docGrid    = document.getElementById('docGrid');
+        const docSearch  = document.getElementById('docSearch');
+
+        pdfInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        dropZone.addEventListener('click', () => pdfInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-primary', 'bg-primary/10');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-primary', 'bg-primary/10');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary', 'bg-primary/10');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        function handleFiles(fileList) {
+            if (!fileList?.length) return;
+
+            Array.from(fileList).forEach(file => {
+                if (file.type !== 'application/pdf') {
+                    alert(`"${file.name}" is not a PDF.`);
+                    return;
+                }
+                if (file.size > 15 * 1024 * 1024) {
+                    alert(`"${file.name}" exceeds 15 MB.`);
+                    return;
+                }
+
+                const url = URL.createObjectURL(file);
+                uploadedDocs.push({
+                    name: file.name,
+                    size: file.size,
+                    url,
+                    addedAt: new Date()
+                });
+            });
+
+            renderDocs();
+            pdfInput.value = '';
+        }
+
+        function renderDocs(data = uploadedDocs) {
+            const q = docSearch.value.toLowerCase().trim();
+            const filtered = data.filter(d => d.name.toLowerCase().includes(q));
+
+            docGrid.innerHTML = filtered.map((doc, i) => `
+                <div class="group relative bg-surface-dark rounded-xl border border-[#3a414b] overflow-hidden hover:border-primary/70 transition shadow-sm hover:shadow-md">
+                    <div class="h-48 bg-black/40 flex items-center justify-center relative">
+                        <embed src="${doc.url}" type="application/pdf" class="w-full h-full">
+                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                            <button onclick="openPreview('${doc.url}', '${doc.name.replace(/'/g,"\\'")}')" 
+                                    class="bg-primary/90 hover:bg-primary text-white px-6 py-3 rounded-lg font-semibold shadow-lg flex items-center gap-2">
+                                <i class="fa-solid fa-expand"></i> Preview
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-medium text-sm truncate" title="${doc.name}">${doc.name}</h3>
+                        <p class="text-xs text-text-secondary mt-1">
+                            ${(doc.size / 1024 / 1024).toFixed(1)} MB • ${doc.addedAt.toLocaleDateString()}
+                        </p>
+                    </div>
+                    <button onclick="removeDoc(${i})" 
+                            class="absolute top-3 right-3 bg-surface-dark/80 hover:bg-accent-red/20 text-accent-red p-2 rounded-full opacity-0 group-hover:opacity-100 transition">
+                        <i class="fa-solid fa-trash-can text-sm"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function removeDoc(index) {
+            if (!confirm("Remove document?")) return;
+            URL.revokeObjectURL(uploadedDocs[index].url);
+            uploadedDocs.splice(index, 1);
+            renderDocs();
+        }
+
+        function openPreview(url, name) {
+            document.getElementById('modalTitle').textContent = name;
+            const area = document.querySelector('.preview-area');
+            area.innerHTML = `<embed src="${url}" type="application/pdf" width="100%" height="100%">`;
+            document.getElementById('docModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('docModal').classList.add('hidden');
+        }
+
+        function filterDocs() {
+            renderDocs();
+        }
+
+        // Sidebar toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const icon = document.getElementById('toggle-icon');
+            sidebar.classList.toggle('w-20');
+            sidebar.classList.toggle('w-64');
+            if (sidebar.classList.contains('w-20')) {
+                icon.classList.replace('fa-chevron-left', 'fa-chevron-right');
+            } else {
+                icon.classList.replace('fa-chevron-right', 'fa-chevron-left');
+            }
+        }
+
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('header-clock').textContent = now.toLocaleTimeString('en-GB');
+            document.getElementById('header-date').textContent = now.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}).toUpperCase();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Initial render
+        renderDocs();
+    </script>
+</body>
+</html>

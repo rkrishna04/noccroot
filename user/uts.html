@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOIS | Network Interface Filter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%); color: #1e293b; min-height: 100vh; }
+        .glass-panel { background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(0, 0, 0, 0.05); }
+        
+        .filter-dropdown { 
+            display: none; 
+            position: absolute; 
+            top: 100%; 
+            left: 0; 
+            z-index: 50; 
+            min-width: 220px; 
+            max-height: 350px;
+            overflow-y: auto;
+            background: white; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); 
+            border: 1px solid #e2e8f0; 
+            padding: 12px; 
+            cursor: default;
+        }
+        .filter-dropdown.active { display: block; }
+        th { position: relative; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+        th:hover { background: #f8fafc; }
+        .checkbox-item:hover { background: #f1f5f9; }
+        .filter-icon { font-size: 0.7rem; margin-left: 4px; opacity: 0.4; }
+    </style>
+</head>
+<body class="p-4 md:p-8" onclick="closeAllFilters()">
+
+    <header class="flex justify-between items-center mb-8">
+        <div class="flex items-center space-x-4">
+            <a href="user.html" class="glass-panel p-3 rounded-xl hover:bg-black/5 transition text-indigo-600">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold tracking-wider uppercase text-slate-900">UTS <span class="text-indigo-600 text-sm font-light">Network Config</span></h1>
+                <p class="text-[10px] text-slate-500 uppercase tracking-[0.3em]">Interface Status & Circuit ID Management</p>
+            </div>
+        </div>
+        <div class="flex items-center bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm">
+            <i class="fa-solid fa-magnifying-glass text-slate-400 mr-3"></i>
+            <input type="text" id="globalSearch" onkeyup="applyAllFilters()" placeholder="Global search IP or CKT..." class="outline-none text-sm w-64">
+        </div>
+    </header>
+
+    <div class="glass-panel rounded-3xl overflow-hidden shadow-2xl border border-black/5">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-indigo-50 text-indigo-700 uppercase text-[10px] font-black tracking-widest">
+                        <th class="p-4 border-b border-black/5" onclick="toggleFilter(event, 'station')">Station <i class="fa-solid fa-filter filter-icon"></i><div id="filter-station" class="filter-dropdown" onclick="event.stopPropagation()"></div></th>
+                        <th class="p-4 border-b border-black/5" onclick="toggleFilter(event, 'interface')">Interface <i class="fa-solid fa-filter filter-icon"></i><div id="filter-interface" class="filter-dropdown" onclick="event.stopPropagation()"></div></th>
+                        <th class="p-4 border-b border-black/5" onclick="toggleFilter(event, 'status')">Status <i class="fa-solid fa-filter filter-icon"></i><div id="filter-status" class="filter-dropdown" onclick="event.stopPropagation()"></div></th>
+                        <th class="p-4 border-b border-black/5" onclick="toggleFilter(event, 'protocol')">Protocol <i class="fa-solid fa-filter filter-icon"></i><div id="filter-protocol" class="filter-dropdown" onclick="event.stopPropagation()"></div></th>
+                        <th class="p-4 border-b border-black/5 text-indigo-900 bg-indigo-100/50">Description</th>
+                        <th class="p-4 border-b border-black/5">IP Address</th>
+                        <th class="p-4 border-b border-black/5">Subnet</th>
+                        <th class="p-4 border-b border-black/5">CKT ID / E1</th>
+                    </tr>
+                </thead>
+                <tbody class="text-[11px] font-medium text-slate-600 divide-y divide-black/5" id="foisTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const fullExcelData = [
+            { station: "PRTN-P", interface: "Gi0/0", status: "up", protocol: "up", desc: "*** LINK TO LAN ***", ip: "10.139.28.4", subnet: "255.255.255.0", ckt: "-" },
+            { station: "PRTN-P", interface: "Se0/0/0:0", status: "up", protocol: "up", desc: "*** LINK BW PRTN-P TO CCG-P 2Mbps***", ip: "10.139.124.249", subnet: "255.255.255.252", ckt: "4692972" },
+            { station: "PRTN-S", interface: "Gi0/0", status: "up", protocol: "up", desc: "*** LINK TO LAN ***", ip: "10.139.28.6", subnet: "255.255.255.0", ckt: "-" },
+            { station: "PRTN-S", interface: "Se0/0/0:0", status: "up", protocol: "up", desc: "LINK B/W BSNL PRTN_S-EKNR", ip: "10.139.125.6", subnet: "255.255.255.252", ckt: "1000481404" },
+            { station: "BH-P", interface: "Se0/1/0:0", status: "up", protocol: "down", desc: "*** LINK BW CCG TO BH RCIL 2Mbps***", ip: "no ip add", subnet: "-", ckt: "2013916" },
+            { station: "BH-S", interface: "Se0/0/1:0", status: "down", protocol: "down", desc: "*** LINK BW BH-S TO PLJ 2Mbps***", ip: "10.139.125.162", subnet: "255.255.255.252", ckt: "router faulty" },
+            { station: "GDA-P", interface: "Gi0/0", status: "up", protocol: "up", desc: "*** LINK TO LAN ***", ip: "10.139.176.2", subnet: "255.255.255.0", ckt: "-" },
+            { station: "ANND-S", interface: "Se0/0/1:0", status: "down", protocol: "down", desc: "*** LINK BW ANND-S TO VXD 2MBPS***", ip: "10.139.252.26", subnet: "255.255.255.2", ckt: "ROUTER FAULTY" }
+        ];
+
+        let activeFilters = { station: [], interface: [], status: [], protocol: [] };
+
+        function initFilters() {
+            Object.keys(activeFilters).forEach(key => {
+                const uniqueValues = [...new Set(fullExcelData.map(item => item[key]))].sort();
+                activeFilters[key] = [...uniqueValues];
+                const dropdown = document.getElementById(`filter-${key}`);
+                
+                let html = `<div class="flex justify-between items-center p-2 border-b mb-2 bg-slate-50 rounded-lg">
+                    <div class="flex space-x-2">
+                        <span class="cursor-pointer text-indigo-600 text-[9px] font-bold" onclick="selectAll('${key}', true)">ALL</span>
+                        <span class="cursor-pointer text-rose-600 text-[9px] font-bold" onclick="selectAll('${key}', false)">CLEAR</span>
+                    </div>
+                    <i class="fa-solid fa-circle-xmark text-slate-300 cursor-pointer" onclick="closeAllFilters()"></i>
+                </div>`;
+                
+                uniqueValues.forEach(val => {
+                    html += `<label class="checkbox-item flex items-center p-2 rounded cursor-pointer text-[10px]">
+                        <input type="checkbox" checked class="mr-2 filter-check-${key}" value="${val}" onchange="updateFilterState('${key}')"> ${val.toUpperCase()}
+                    </label>`;
+                });
+                dropdown.innerHTML = html;
+            });
+        }
+
+        function toggleFilter(e, key) {
+            e.stopPropagation();
+            const dropdown = document.getElementById(`filter-${key}`);
+            const isActive = dropdown.classList.contains('active');
+            closeAllFilters();
+            if (!isActive) dropdown.classList.add('active');
+        }
+
+        function closeAllFilters() {
+            document.querySelectorAll('.filter-dropdown').forEach(d => d.classList.remove('active'));
+        }
+
+        function selectAll(key, bool) {
+            document.querySelectorAll(`.filter-check-${key}`).forEach(cb => cb.checked = bool);
+            updateFilterState(key);
+        }
+
+        function updateFilterState(key) {
+            activeFilters[key] = Array.from(document.querySelectorAll(`.filter-check-${key}:checked`)).map(cb => cb.value);
+            applyAllFilters();
+        }
+
+        function applyAllFilters() {
+            const globalQuery = document.getElementById('globalSearch').value.toLowerCase();
+            
+            const filteredData = fullExcelData.filter(item => {
+                const matchesGlobal = Object.values(item).some(val => String(val).toLowerCase().includes(globalQuery));
+                
+                return matchesGlobal && 
+                       activeFilters.station.includes(item.station) &&
+                       activeFilters.interface.includes(item.interface) &&
+                       activeFilters.status.includes(item.status) &&
+                       activeFilters.protocol.includes(item.protocol);
+            });
+
+            renderTable(filteredData);
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('foisTableBody');
+            tbody.innerHTML = data.length ? '' : '<tr><td colspan="8" class="p-10 text-center italic text-slate-400">No matching interface records found.</td></tr>';
+            
+            data.forEach(item => {
+                const statusColor = item.status === 'up' ? 'text-emerald-600 bg-emerald-50' : 'text-rose-600 bg-rose-50';
+                const protocolColor = item.protocol === 'up' ? 'text-emerald-600 bg-emerald-50' : 'text-rose-600 bg-rose-50';
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-indigo-50/30 transition-colors">
+                        <td class="p-4 font-bold text-slate-800">${item.station}</td>
+                        <td class="p-4 font-mono text-indigo-600">${item.interface}</td>
+                        <td class="p-4"><span class="${statusColor} px-2 py-0.5 rounded text-[9px] font-bold uppercase">${item.status}</span></td>
+                        <td class="p-4"><span class="${protocolColor} px-2 py-0.5 rounded text-[9px] font-bold uppercase">${item.protocol}</span></td>
+                        <td class="p-4 italic text-slate-500 bg-indigo-50/30 min-w-[200px]">${item.desc}</td>
+                        <td class="p-4 font-mono">${item.ip}</td>
+                        <td class="p-4 font-mono opacity-60">${item.subnet}</td>
+                        <td class="p-4 text-[10px] font-bold ${item.ckt.includes('FAULTY') ? 'text-rose-500' : 'text-slate-400'}">${item.ckt}</td>
+                    </tr>`;
+            });
+        }
+
+        initFilters();
+        applyAllFilters();
+    </script>
+</body>
+</html>

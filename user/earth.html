@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earthing Compliance | Full System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #f8fafc; color: #1e293b; min-height: 100vh; }
+        .glass-panel { background: white; border: 1px solid #e2e8f0; }
+        .filter-dropdown { display: none; position: absolute; top: 100%; left: 0; z-index: 50; width: 200px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); padding: 10px; border: 1px solid #e2e8f0; max-height: 200px; overflow-y: auto; }
+        .filter-dropdown.active { display: block; }
+        .alert-row { background-color: #fee2e2 !important; }
+        th { cursor: pointer; user-select: none; }
+    </style>
+</head>
+<body class="p-8" onclick="closeAllFilters()">
+
+    <div class="mb-8 flex justify-between items-center">
+        <a href="user.html" class="glass-panel p-3 rounded-xl hover:bg-black/5 transition text-indigo-600">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+        <div>
+            <h1 class="text-2xl font-bold">Earthing <span class="text-indigo-600">Monitor</span></h1>
+            <p class="text-xs text-slate-500 uppercase tracking-widest">Compliance & Maintenance Dashboard</p>
+        </div>
+        <input type="text" id="globalSearch" onkeyup="renderTable()" placeholder="Global Search..." class="px-4 py-2 rounded-lg border text-sm w-64 shadow-sm">
+    </div>
+
+    <div class="glass-panel rounded-xl overflow-hidden shadow-sm">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-slate-50 uppercase text-[10px] font-black text-slate-500">
+                    <th class="p-4">Sr.</th>
+                    <th class="p-4 relative" onclick="toggleFilter(event, 'loc')">Station <i class="fa fa-filter ml-1 text-[8px]"></i>
+                        <div id="filter-loc" class="filter-dropdown" onclick="event.stopPropagation()"></div>
+                    </th>
+                    <th class="p-4">Resistance (Ω)</th>
+                    <th class="p-4">Date</th>
+                </tr>
+            </thead>
+            <tbody id="earthTableBody" class="text-sm divide-y"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const earthData = [
+            { sr: 1, loc: "NOCC", val: 0.22, date: "2025-05-15" },
+            { sr: 3, loc: "VS", val: 1.00, date: "2025-06-20" },
+            { sr: 4, loc: "MPR", val: 1.40, date: "2025-06-19" },
+            { sr: 5, loc: "VRM", val: 1.50, date: "2025-05-27" },
+            { sr: 6, loc: "ITA", val: 1.80, date: "2025-05-30" },
+            { sr: 7, loc: "KSPR", val: 1.80, date: "2025-05-29" },
+            { sr: 18, loc: "KSB", val: 3.46, date: "2025-10-05" },
+            { sr: 20, loc: "SYN", val: 1.10, date: "2025-05-16" },
+            { sr: 21, loc: "GTX", val: 2.10, date: "2025-07-05" }
+        ];
+
+        let activeStations = [...new Set(earthData.map(d => d.loc))];
+
+        function initFilters() {
+            const dropdown = document.getElementById('filter-loc');
+            dropdown.innerHTML = `<label class="block p-1 text-[11px] font-bold"><input type="checkbox" checked onchange="toggleAll(this)"> Select All</label><hr>`;
+            [...new Set(earthData.map(d => d.loc))].forEach(loc => {
+                dropdown.innerHTML += `<label class="block p-1 text-[11px]"><input type="checkbox" checked value="${loc}" onchange="updateFilters()"> ${loc}</label>`;
+            });
+        }
+
+        function toggleFilter(e, key) { e.stopPropagation(); document.getElementById(`filter-${key}`).classList.toggle('active'); }
+        function closeAllFilters() { document.querySelectorAll('.filter-dropdown').forEach(d => d.classList.remove('active')); }
+
+        function updateFilters() {
+            activeStations = Array.from(document.querySelectorAll('#filter-loc input:checked')).map(cb => cb.value);
+            renderTable();
+        }
+
+        function toggleAll(el) {
+            document.querySelectorAll('#filter-loc input').forEach(cb => cb.checked = el.checked);
+            updateFilters();
+        }
+
+        function renderTable() {
+            const query = document.getElementById('globalSearch').value.toLowerCase();
+            const tbody = document.getElementById('earthTableBody');
+            tbody.innerHTML = '';
+            
+            earthData.filter(i => i.loc.toLowerCase().includes(query) && activeStations.includes(i.loc)).forEach(item => {
+                tbody.innerHTML += `
+                    <tr class="${item.val > 1 ? 'alert-row' : ''}">
+                        <td class="p-4">${item.sr}</td>
+                        <td class="p-4 font-bold">${item.loc}</td>
+                        <td class="p-4">${item.val} Ω</td>
+                        <td class="p-4 text-slate-500 font-mono">${item.date}</td>
+                    </tr>`;
+            });
+        }
+
+        initFilters();
+        renderTable();
+    </script>
+</body>
+</html>
