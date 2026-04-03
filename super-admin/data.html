@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Module Management | Super Admin System</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1a535b",
+                        "background-dark": "#1a1e23",
+                        "surface-dark": "#24292f",
+                        "accent-gold": "#C8AA6E",
+                        "accent-red": "#D85B42",
+                        "accent-green": "#078834"
+                    },
+                    fontFamily: { "display": ["Manrope", "sans-serif"] }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        body { font-family: 'Manrope', sans-serif; background-color: #1a1e23; }
+        
+        /* Galaxy Star Effect */
+        .stars-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        .star { position: absolute; background: white; border-radius: 50%; opacity: 0.3; animation: drift linear infinite; }
+        @keyframes drift { from { transform: translateY(0px); } to { transform: translateY(-1000px); } }
+
+        /* Glass Module Buttons */
+        .module-btn {
+            background: rgba(26, 83, 91, 0.1);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .module-btn:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(200, 170, 110, 0.4);
+            background: rgba(26, 83, 91, 0.2);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1a1e23; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1a535b; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background-dark text-[#e9f0f1] font-display selection:bg-primary/30">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const StarField = () => {
+            const [stars, setStars] = useState([]);
+            useEffect(() => {
+                const newStars = Array.from({ length: 80 }).map((_, i) => ({
+                    id: i,
+                    size: Math.random() * 2 + 1 + 'px',
+                    left: Math.random() * 100 + '%',
+                    top: Math.random() * 100 + '%',
+                    duration: (Math.random() * 100 + 50) + 's',
+                    delay: Math.random() * -100 + 's'
+                }));
+                setStars(newStars);
+            }, []);
+
+            return (
+                <div className="stars-container">
+                    {stars.map(star => (
+                        <div key={star.id} className="star" style={{
+                            width: star.size, height: star.size, left: star.left, top: star.top,
+                            animationDuration: star.duration, animationDelay: star.delay
+                        }} />
+                    ))}
+                </div>
+            );
+        };
+
+        const ModuleGrid = () => {
+            const [modules, setModules] = useState([]);
+
+            useEffect(() => {
+                async function loadModules() {
+                    try {
+                        const res = await fetch('/api/modules');
+                        const json = await res.json();
+                        if (res.ok) {
+                            setModules(json.modules);
+                        }
+                    } catch (err) {
+                        console.error('Could not load modules', err);
+                    }
+                }
+                loadModules();
+            }, []);
+
+            const addModule = async () => {
+                const name = prompt('Name your module (e.g., Inventory Hub):');
+                if (!name || !name.trim()) return;
+
+                const tableName = name.trim().replace(/\s+/g, '_').toLowerCase();
+                try {
+                    const res = await fetch('/api/modules', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: name.trim(), tableName, path: tableName, roleNames: ['admin', 'super_admin'] })
+                    });
+                    const payload = await res.json();
+                    if (!res.ok) throw new Error(payload.error || 'Failed to create module');
+                    setModules(prev => [...prev, payload.module]);
+                } catch (err) {
+                    console.error(err);
+                    alert('Module creation failed: ' + err.message);
+                }
+            };
+
+            const allModules = modules;
+
+            return (
+                <div className="space-y-8 relative z-10">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 flex-1">
+                            <div className="h-px bg-gradient-to-r from-primary/50 to-transparent flex-1"></div>
+                            <h2 className="text-xs font-black uppercase tracking-[0.4em] text-accent-gold whitespace-nowrap">Command Modules</h2>
+                            <div className="h-px bg-gradient-to-l from-primary/50 to-transparent flex-1"></div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+                        {/* Add Module Trigger */}
+                        <button onClick={addModule} className="module-btn p-6 rounded-xl flex flex-col items-center justify-center border-dashed border-2 border-primary/30 bg-primary/5 group">
+                            <i className="fa-solid fa-plus text-accent-gold text-xl group-hover:scale-125 transition-transform"></i>
+                            <span className="text-[10px] font-bold tracking-widest mt-2 uppercase text-[#5a868c]">New Node</span>
+                        </button>
+
+                        {allModules.map((mod, idx) => (
+                            <button key={idx} className="module-btn p-6 rounded-xl flex flex-col items-center justify-center gap-3 group">
+                                <i className="fa-solid fa-atom text-primary text-xl group-hover:rotate-180 transition-transform duration-700"></i>
+                                <span className="text-xs font-black tracking-widest uppercase">{mod.name || mod}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        const SuperAdminLayout = () => {
+            return (
+                <div className="flex h-screen overflow-hidden">
+                    <StarField />
+                    
+                    {/* Sidebar - Kept as usual */}
+                    <aside className="w-64 flex-shrink-0 border-r border-[#2b313a] flex flex-col bg-background-dark relative z-20">
+                        <div className="p-6">
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+                                    <span className="material-symbols-outlined">terminal</span>
+                                </div>
+                                <div>
+                                    <h1 className="text-lg font-bold leading-tight">Super Admin</h1>
+                                    <p className="text-xs text-[#5a868c]">v4.2.0-stable</p>
+                                </div>
+                            </div>
+                            <nav className="space-y-1">
+                                
+                                <a href="data.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-semibold border-l-4 border-primary">
+                                    <span className="material-symbols-outlined text-sm">Data Modules</span>
+                                    <span className="text-sm"></span>
+                                </a>
+                                
+                                <a href="super_admin.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5a868c] hover:bg-[#2b313a]">
+                                    <span className="material-symbols-outlined text-sm">person_add</span>
+                                    <span className="text-sm">Provisioning</span>
+                                </a>
+                                <a href="scan.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5a868c] hover:bg-[#2b313a]">
+                                    <span className="material-symbols-outlined text-sm"> Digital Copis</span>
+                                  
+                                </a>
+                                
+                            </nav>
+                </div>          
+                        <div class="p-4 border-t border-[#2b313a] bg-[#1a1e23]/70">
+            <div class="flex items-center gap-3 p-2">
+                <div class="w-9 h-9 rounded-full bg-primary/80 flex items-center justify-center text-white font-bold text-sm shadow-inner">AD</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium truncate">Ghanshaym</p>
+                    <p class="text-xs text-text-secondary">Super Admin</p>
+                </div>
+                <i class="fa-solid fa-right-from-bracket text-text-secondary hover:text-accent-red cursor-pointer transition"></i>
+            </div>
+        </div>
+                    </aside>
+
+                    {/* Main Content */}
+                    <main className="flex-1 flex flex-col overflow-hidden bg-background-dark relative z-10">
+                        <header className="h-16 border-b border-[#2b313a] flex items-center justify-between px-8 bg-background-dark/80 backdrop-blur-md">
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm font-medium text-[#5a868c]">System Path:</span>
+                                <div className="text-xs font-mono bg-[#2b313a] px-3 py-1 rounded border border-[#3a414b]">
+                                    root <span className="mx-2 opacity-50">/</span> control-center <span className="mx-2 opacity-50">/</span> modules
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="text-right">
+                                    <p className="text-xs font-bold">Ghanshyam</p>
+                                    <p className="text-[10px] text-accent-green">Online</p>
+                                </div>
+                                <div className="size-10 rounded-full bg-gradient-to-tr from-primary to-accent-gold p-0.5">
+                                    <div className="size-full rounded-full bg-background-dark flex items-center justify-center font-bold text-xs">G </div>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                            <div className="mb-10">
+                                <h1 className="text-3xl font-bold text-white tracking-tight">System Control Center</h1>
+                                <p className="text-[#5a868c]">Manage global data streams and provision new custom nodes.</p>
+                            </div>
+                            
+                            <ModuleGrid />
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<SuperAdminLayout />);
+    </script>
+</body>
+</html>

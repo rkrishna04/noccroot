@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>User Provisioning | Super Admin System</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1a535b",
+                        "background-dark": "#1a1e23",
+                        "surface-dark": "#24292f",
+                        "accent-gold": "#C8AA6E",
+                        "accent-red": "#D85B42",
+                        "accent-green": "#078834"
+                    },
+                    fontFamily: { "display": ["Manrope", "sans-serif"] }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        body { font-family: 'Manrope', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1a1e23; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1a535b; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background-dark text-[#e9f0f1] font-display selection:bg-primary/30">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const RootUserManagement = () => {
+            const [role, setRole] = useState('normal'); // normal or admin
+            const [users, setUsers] = useState([]);
+            const [formData, setFormData] = useState({
+                name: '', email: '', phone: '', dept: '', post: '', password: ''
+            });
+
+            useEffect(() => {
+                async function loadUsers() {
+                    try {
+                        const res = await fetch('/api/users');
+                        const payload = await res.json();
+                        if (res.ok) setUsers(payload.users.map(u => ({
+                            id: u.id,
+                            name: u.fullName,
+                            email: u.email,
+                            type: u.role.name === 'admin' ? 'ADMIN' : 'NORMAL',
+                            permissions: u.role.name === 'admin' ? 'View, Modify, Generate Reports' : 'View Data Only',
+                            status: u.status
+                        })));
+                    } catch (err) {
+                        console.error('User load failed', err);
+                    }
+                }
+
+                loadUsers();
+            }, []);
+
+
+            const handleProvision = async (e) => {
+                e.preventDefault();
+
+                const payload = {
+                    fullName: formData.name,
+                    email: formData.email,
+                    password: formData.password,
+                    role: role === 'admin' ? 'admin' : 'normal'
+                };
+
+                try {
+                    const res = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+                    if (!res.ok) {
+                        return alert(data.error || 'Could not provision user');
+                    }
+
+                    const newUser = {
+                        id: data.user.id,
+                        name: data.user.fullName,
+                        email: data.user.email,
+                        type: payload.role.toUpperCase(),
+                        permissions: payload.role === 'admin' ? 'View, Modify, Generate Reports' : 'View Data Only',
+                        status: 'active'
+                    };
+
+                    setUsers(prev => [newUser, ...prev]);
+                    setFormData({ name: '', email: '', phone: '', dept: '', post: '', password: '' });
+                    alert(`SUCCESS: ${newUser.type} account provisioned.`);
+                } catch (err) {
+                    console.error(err);
+                    alert('Network error provisioning user');
+                }
+            };
+
+            return (
+                <div className="flex h-screen overflow-hidden">
+                    {/* Sidebar */}
+                    <aside className="w-64 flex-shrink-0 border-r border-[#2b313a] flex flex-col bg-background-dark">
+                        <div className="p-6">
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+                                    <span className="material-symbols-outlined">terminal</span>
+                                </div>
+                                <div>
+                                    <h1 className="text-lg font-bold leading-tight">Super Admin System</h1>
+                                    <p className="text-xs text-[#5a868c]">v4.2.0-stable</p>
+                                </div>
+                            </div>
+                            <nav className="space-y-1">
+                                
+                                <a href="data.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5a868c] hover:bg-[#2b313a]">
+                                    <span className="material-symbols-outlined text-sm"> Data Modules</span>
+                                  
+                                </a>
+                                <a href="super_admin.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-semibold border-l-4 border-primary">
+                                    <span className="material-symbols-outlined text-sm">person_add</span>
+                                    <span className="text-sm">Provisioning</span>
+                                </a>
+                                <a href="../pdfs.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5a868c] hover:bg-[#2b313a]">
+                                    <span className="material-symbols-outlined text-sm">description</span>
+                                    <span className="text-sm">PDF Documents</span>
+                                </a>
+                                <a href="scan.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5a868c] hover:bg-[#2b313a]">
+                                    <span className="material-symbols-outlined text-sm"> Digital Copis</span>
+                                  
+                                </a>
+                            </nav>
+                        </div>
+                    </aside>
+
+                    {/* Main Content */}
+                    <main className="flex-1 flex flex-col overflow-hidden bg-background-dark">
+                        <header className="h-16 border-b border-[#2b313a] flex items-center justify-between px-8 bg-background-dark">
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm font-medium text-[#5a868c]">Path:</span>
+                                <div className="text-xs font-mono bg-[#2b313a] px-3 py-1 rounded border border-[#3a414b]">
+                                    root <span className="mx-2 opacity-50">/</span> auth <span className="mx-2 opacity-50">/</span> provision-user
+                                </div>
+                            </div>
+                        </header>
+
+                        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                            <div className="grid grid-cols-12 gap-8">
+                                
+                                {/* Provisioning Form */}
+                                <div className="col-span-5">
+                                    <section className="bg-surface-dark rounded-xl border border-[#3a414b] overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-[#3a414b] bg-[#2b313a]/50">
+                                            <h2 className="text-base font-bold flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-primary">person_add</span>
+                                                Account Creation Wizard
+                                            </h2>
+                                        </div>
+                                        <div className="p-6">
+                                            <div className="flex p-1 bg-[#1a1e23] rounded-lg mb-6">
+                                                <button onClick={() => setRole('normal')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all ${role === 'normal' ? 'bg-primary text-white shadow-lg' : 'text-[#5a868c]'}`}>Normal User</button>
+                                                <button onClick={() => setRole('admin')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all ${role === 'admin' ? 'bg-accent-gold text-black shadow-lg' : 'text-[#5a868c]'}`}>Admin</button>
+                                            </div>
+
+                                            <form onSubmit={handleProvision} className="space-y-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-[#5a868c] uppercase ml-1">Identity Details</label>
+                                                    <input required placeholder="Name" className="w-full bg-[#1a1e23] border-[#3a414b] rounded-lg text-sm focus:ring-primary" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <input required type="email" placeholder="Email" className="w-full bg-[#1a1e23] border-[#3a414b] rounded-lg text-sm focus:ring-primary" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                                                    <input required type="tel" placeholder="Phone" className="w-full bg-[#1a1e23] border-[#3a414b] rounded-lg text-sm focus:ring-primary" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <select className="w-full bg-[#1a1e23] border-[#3a414b] rounded-lg text-sm text-[#5a868c]" value={formData.dept} onChange={e => setFormData({...formData, dept: e.target.value})}>
+                                                        <option value="">Department</option>
+                                                        <option>Signal & Telecom</option>
+                                                        <option>Electrical (TRD)</option>
+                                                        <option>Operating</option>
+                                                    </select>
+                                                    {role === 'normal' && (
+                                                        <input required placeholder="Post / Designation" className="w-full bg-[#1a1e23] border-[#3a414b] rounded-lg text-sm focus:ring-primary" value={formData.post} onChange={e => setFormData({...formData, post: e.target.value})} />
+                                                    )}
+                                                </div>
+
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-accent-red uppercase ml-1">Temporary Credentials</label>
+                                                    <input required type="password" placeholder="Temporary Password" className="w-full bg-[#1a1e23] border-[#3a414b] rounded-lg text-sm focus:ring-accent-red" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+                                                </div>
+
+                                                <div className="p-4 bg-primary/5 border border-dashed border-primary/30 rounded-lg">
+                                                    <p className="text-[9px] font-bold text-primary uppercase tracking-tighter mb-1">Auto-Assigned Privileges</p>
+                                                    <p className="text-xs font-mono text-[#e9f0f1]">
+                                                        {role === 'admin' ? 'FULL: VIEW_DATA, MODIFY_RESOURCES, GEN_REPORTS' : 'LIMITED: READ_ONLY_ACCESS'}
+                                                    </p>
+                                                </div>
+
+                                                <button type="submit" className={`w-full py-3 rounded-lg font-bold text-xs uppercase tracking-widest transition-all shadow-lg ${role === 'admin' ? 'bg-accent-gold text-black' : 'bg-primary text-white'}`}>
+                                                    Confirm & Provision {role.toUpperCase()}
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </section>
+                                </div>
+
+                                {/* Live Directory */}
+                                <div className="col-span-7">
+                                    <section className="bg-surface-dark rounded-xl border border-[#3a414b] overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-[#3a414b] flex justify-between items-center">
+                                            <h2 className="text-base font-bold flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-accent-gold">shield_person</span>
+                                                Active Directory
+                                            </h2>
+                                        </div>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left">
+                                                <thead className="bg-[#1a1e23]/50 text-[#5a868c] text-[10px] uppercase font-bold">
+                                                    <tr>
+                                                        <th className="px-6 py-3">User</th>
+                                                        <th className="px-6 py-3">Role</th>
+                                                        <th className="px-6 py-3">Permissions</th>
+                                                        <th className="px-6 py-3 text-right">Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-[#3a414b] text-xs">
+                                                    {users.map(user => (
+                                                        <tr key={user.id} className="hover:bg-primary/5">
+                                                            <td className="px-6 py-4">
+                                                                <p className="font-bold">{user.name}</p>
+                                                                <p className="text-[10px] text-[#5a868c]">{user.email}</p>
+                                                            </td>
+                                                            <td className="px-6 py-4 font-mono">
+                                                                <span className={`px-2 py-0.5 rounded uppercase text-[9px] font-black ${user.type === 'ADMIN' ? 'bg-accent-gold/20 text-accent-gold' : 'bg-[#3a414b] text-[#5a868c]'}`}>
+                                                                    {user.type}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-[#5a868c] font-mono">{user.permissions}</td>
+                                                            <td className="px-6 py-4 text-right text-accent-green font-bold uppercase text-[10px]">Active</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </section>
+                                </div>
+
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<RootUserManagement />);
+    </script>
+</body>
+</html>
+
+
+

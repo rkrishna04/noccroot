@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOCC ROOT | Admin Control Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: radial-gradient(circle at center, #1B2735 0%, #090A0F 100%);
+            color: #e2e8f0;
+            overflow-x: hidden;
+            min-h-screen;
+        }
+
+        /* --- GALAXY ANIMATION --- */
+        .stars-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+        }
+
+        @keyframes drift {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-2000px); }
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: drift linear infinite;
+        }
+
+        /* --- GLASSMOPHISM --- */
+        .glass-sidebar {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-table-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const AdminDashboard = () => {
+            const [assets, setAssets] = useState([]);
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [newNode, setNewNode] = useState({ node: '', data: '', status: 'ACTIVE' });
+
+            useEffect(() => {
+                async function loadAssets() {
+                    try {
+                        const res = await fetch('/api/data/assets');
+                        const payload = await res.json();
+                        if (res.ok) {
+                            const mapped = payload.rows.map(item => ({
+                                id: item.id,
+                                node: item.data.node || 'Unknown',
+                                data: item.data.dataType || item.data.data || 'Unknown',
+                                status: item.data.status || 'ACTIVE'
+                            }));
+                            setAssets(mapped);
+                        }
+                    } catch (err) {
+                        console.error('Load assets failed', err);
+                    }
+                }
+                loadAssets();
+            }, []);
+
+            const stats = {
+                pending: assets.filter(a => a.status === 'REVIEW').length,
+                total: 52 + assets.length,
+                active: assets.filter(a => a.status === 'ACTIVE').length,
+                links: 24 + (assets.length * 2)
+            };
+
+            const addEntry = async (e) => {
+                e.preventDefault();
+                try {
+                    const row = {
+                        node: newNode.node,
+                        dataType: newNode.data,
+                        status: newNode.status
+                    };
+                    const res = await fetch('/api/data/assets', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: row })
+                    });
+                    const payload = await res.json();
+                    if (!res.ok) throw new Error(payload.error || 'Add asset failed');
+                    setAssets(prev => [...prev, { id: payload.row[0].id || payload.row.id, node: row.node, data: row.dataType, status: row.status }]);
+                    setIsModalOpen(false);
+                    setNewNode({ node: '', data: '', status: 'ACTIVE' });
+                } catch (err) {
+                    console.error(err);
+                    alert('Could not add new node');
+                }
+            };
+
+            const deleteEntry = async (id) => {
+                if (!confirm('Confirm asset decommission?')) return;
+                try {
+                    const res = await fetch(`/api/data/assets?id=${id}`, { method: 'DELETE' });
+                    if (!res.ok) throw new Error('Delete node failed');
+                    setAssets(prev => prev.filter(a => a.id !== id));
+                } catch (err) {
+                    console.error(err);
+                    alert('Could not delete node');
+                }
+            };
+
+            const handleLogout = () => {
+                localStorage.removeItem('noccroot_token');
+                localStorage.removeItem('noccroot_user');
+                window.location.href = '/index.html';
+            };
+            const downloadCSV = () => {
+                const headers = ["ID,Node Name,Data Type,Status\n"];
+                const rows = assets.map(a => `${a.id},${a.node},${a.data},${a.status}\n`);
+                const blob = new Blob([headers, ...rows], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'n-dams_report.csv';
+                a.click();
+            };
+
+            return (
+                <div className="flex min-h-screen">
+                    <StarField />
+                    
+                    {/* --- SIDEBAR --- */}
+                    <aside className="w-64 glass-sidebar h-screen sticky top-0 p-6 hidden md:block">
+                        <div className="mb-10">
+                            <h2 className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">NOCC ROOT</h2>
+                            <p className="text-[10px] text-slate-500 uppercase tracking-[0.3em] font-bold">Administrative Access</p>
+                        </div>
+                        
+                        <nav className="space-y-3">
+                            <a href="#" className="flex items-center space-x-3 p-3 bg-indigo-700 rounded-lg shadow-inner">
+                                <i className="fa-solid fa-gauge"></i><span>Management Hub</span>
+                            </a>
+                            <a href="datamanagement.html" className="flex items-center space-x-3 p-3 text-indigo-200 hover:bg-indigo-800 rounded-lg transition">
+                                <i className="fa-solid fa-file-invoice"></i><span>Data Management</span>
+                            </a>
+                            <a href="../pdfs.html" className="flex items-center space-x-3 p-3 text-indigo-200 hover:bg-indigo-800 rounded-lg transition">
+                                <i className="fa-solid fa-file-pdf"></i><span>PDF Documents</span>
+                            </a>
+                            
+                            
+                            <div className="pt-10">
+    <button 
+        onClick={handleLogout}
+        className="flex items-center space-x-3 p-3 text-red-400 hover:bg-red-900/20 w-full rounded-xl transition-all justify-start"
+    >
+        <i className="fa-solid fa-power-off"></i>
+        <span className="font-semibold">Logout</span>
+    </button>
+</div>
+                        </nav>
+                    </aside>
+
+                    {/* --- MAIN CONTENT --- */}
+                    <main className="flex-1 p-8">
+                        <header className="flex justify-between items-center mb-10">
+                            <div>
+                                <h1 className="text-3xl font-bold text-white tracking-tight">Control Center</h1>
+                                <p className="text-slate-400">Precision monitoring for <span className="text-blue-400 font-semibold">Western Railway Ops</span></p>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <button 
+                                    onClick={() => setIsModalOpen(true)}
+                                    className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2">
+                                    <i className="fa-solid fa-plus text-xs"></i> Provision Node
+                                </button>
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-black border border-white/20 shadow-2xl">K</div>
+                            </div>
+                        </header>
+
+                        {/* --- STAT CARDS --- */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+                            <StatCard title="Review Required" value={stats.pending} color="text-amber-400" icon="fa-shield-halved" />
+                            <StatCard title="Total Assets" value={stats.total} color="text-blue-400" icon="fa-box" />
+                            <StatCard title="Active Nodes" value={stats.active} color="text-emerald-400" icon="fa-circle-check" />
+                            <StatCard title="System Links" value={stats.links} color="text-purple-400" icon="fa-link" />
+                        </div>
+
+                        {/* --- DATA TABLE --- */}
+                        <div className="glass-card rounded-2xl overflow-hidden shadow-2xl">
+                            <div className="p-6 border-b border-white/5 flex justify-between items-center">
+                                <h2 className="font-bold text-white flex items-center gap-2">
+                                    <i className="fa-solid fa-satellite text-blue-400"></i> Assets Position (Live)
+                                </h2>
+                                <button 
+                                    onClick={downloadCSV}
+                                    className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-lg text-xs font-bold flex items-center transition-all">
+                                    <i className="fa-solid fa-file-arrow-down mr-2"></i> EXPORT CSV
+                                </button>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead className="bg-slate-900/50 text-slate-400 text-[10px] uppercase font-black tracking-widest">
+                                        <tr>
+                                            <th className="p-5">Asset ID</th>
+                                            <th className="p-5">Node Location</th>
+                                            <th className="p-5">Data Stream</th>
+                                            <th className="p-5">Status</th>
+                                            <th className="p-5 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5 text-slate-300">
+                                        {assets.map((asset) => (
+                                            <tr key={asset.id} className="glass-table-row transition-all">
+                                                <td className="p-5 font-mono text-xs text-blue-400 font-bold">#{asset.id}</td>
+                                                <td className="p-5 font-semibold text-white">{asset.node}</td>
+                                                <td className="p-5 text-slate-400 text-sm">{asset.data}</td>
+                                                <td className="p-5">
+                                                    <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter ${asset.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                                                        {asset.status}
+                                                    </span>
+                                                </td>
+                                                <td className="p-5 text-right space-x-4">
+                                                    <button className="text-slate-500 hover:text-white transition-colors text-xs font-black uppercase">Edit</button>
+                                                    <button onClick={() => deleteEntry(asset.id)} className="text-red-900/60 hover:text-red-400 transition-colors text-xs font-black uppercase">Delete</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* --- MODAL --- */}
+                        {isModalOpen && (
+                            <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                                <div className="glass-card p-8 rounded-3xl w-full max-w-md border border-white/10 shadow-3xl">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h2 className="text-xl font-black text-white uppercase tracking-tight">Provision New Node</h2>
+                                        <i className="fa-solid fa-atom text-blue-500 animate-spin-slow"></i>
+                                    </div>
+                                    <form onSubmit={addEntry} className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Location</label>
+                                            <input required placeholder="e.g. Surat Main" className="w-full p-4 bg-slate-900/50 border border-white/5 rounded-xl text-white outline-none focus:border-blue-500 transition-all" onChange={e => setNewNode({...newNode, node: e.target.value})} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Asset Type</label>
+                                            <input required placeholder="e.g. Primary Fiber" className="w-full p-4 bg-slate-900/50 border border-white/5 rounded-xl text-white outline-none focus:border-blue-500 transition-all" onChange={e => setNewNode({...newNode, data: e.target.value})} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase ml-1">Initial Priority</label>
+                                            <select className="w-full p-4 bg-slate-900/50 border border-white/5 rounded-xl text-white outline-none focus:border-blue-500 transition-all appearance-none" onChange={e => setNewNode({...newNode, status: e.target.value})}>
+                                                <option value="ACTIVE">ACTIVE</option>
+                                                <option value="REVIEW">REVIEW</option>
+                                            </select>
+                                        </div>
+                                        <div className="flex gap-4 pt-6">
+                                            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 text-slate-500 font-bold hover:text-white transition-all">Cancel</button>
+                                            <button type="submit" className="flex-1 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:scale-[1.02] transition-all">Execute</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        };
+
+        const SidebarLink = ({ icon, label, active }) => (
+            <a href="#" className={`flex items-center space-x-3 p-4 rounded-xl transition-all ${active ? 'bg-blue-600/20 border border-blue-500/30 text-blue-400' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
+                <i className={`fa-solid ${icon}`}></i>
+                <span className="text-sm font-bold tracking-tight">{label}</span>
+            </a>
+        );
+
+        const StatCard = ({ title, value, color, icon }) => (
+            <div className="glass-card p-6 rounded-2xl group hover:border-white/20 transition-all">
+                <div className="flex justify-between items-start mb-4">
+                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest leading-none">{title}</p>
+                    <i className={`fa-solid ${icon} ${color} opacity-40 group-hover:opacity-100 transition-opacity`}></i>
+                </div>
+                <h3 className={`text-4xl font-black mt-1 ${color} tracking-tighter`}>{value}</h3>
+            </div>
+        );
+
+        const StarField = () => {
+            useEffect(() => {
+                const container = document.getElementById('starField');
+                for (let i = 0; i < 150; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    const size = Math.random() * 2 + 1 + 'px';
+                    star.style.width = size;
+                    star.style.height = size;
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.animationDuration = (Math.random() * 100 + 50) + 's';
+                    star.style.opacity = Math.random();
+                    container.appendChild(star);
+                }
+            }, []);
+            return <div className="stars-container" id="starField"></div>;
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<AdminDashboard />);
+
+        const handleLogout = () => {
+    if (!confirm("Logout from NOCC ROOT ?")) return;
+
+    // Optional: add visual feedback
+    document.body.style.opacity = '0.4';
+    document.body.style.transition = 'opacity 0.6s ease';
+
+    setTimeout(() => {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.replace('/index.html');  // replace → no back button history
+    }, 600);
+};
+    </script>
+</body>
+</html>
+

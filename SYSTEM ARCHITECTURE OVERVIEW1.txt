@@ -1,0 +1,909 @@
+
+🏗️ SYSTEM ARCHITECTURE OVERVIEW
+
+High-Level Architecture Diagram
+
+┌─────────────────────────────────────────────────────────────────┐┐
+│                    USER INTERFACE LAYER                         │
+│  ┌──────────────┬──────────────┬──────────────┬──────────────┐ │
+│  │ Normal User  │    Admin     │  Super Admin │  Root User   │ │
+│  │  Dashboard   │  Dashboard   │  Dashboard   │  Dashboard   │ │
+│  └──────────────┴──────────────┴──────────────┴──────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+                           ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                  APPLICATION LAYER (Backend)                    │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │ Authentication & Authorization Engine                    │  │
+│  │ - Role-Based Access Control (RBAC)                       │  │
+│  │ - Permission Engine                                      │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │ Core Logic                                      	       |  │
+│  │ - Data Management Module (CRUD Operations)               │  │
+│  │ - Reporting Engine (Dynamic Reports)                     │  │
+│  │ - 	Notification System                        	       │  │
+│  │ - Menu Manager (Dynamic Module Generation)               │  │
+│  │ - Session Tracking & Monitoring                          │  │
+│  │ - Audit & Logging System                                 │  │
+│  │ - Backup & Recovery Manager                              │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+
+                           ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                      DATABASE LAYER                             
+│  ┌──────────────────────────────────────────────────────────┐  
+│  │ PostgreSQL                                     
+│  │ ┌─────────────────────────────────────────────────────┐  
+│  │ │ Tables:                                             │  │  │
+│  │ │ - Users (Normal User, Admin, Super Admin, Root)     │  │  │
+│  │ │ - Roles & Permissions                               │  │  │
+│  │ │ - Railway Data (when new module generated automatically name of that datatable generated the columns and row managed form Super admin dashboard. i shared you the link how the datatables are have https://docs.google.com/spreadsheets/d/1bfsJpcPBCSFxX6dfhRTPiHfJpu2PwZKL9B2a-XLjn0Q/edit?pli=1&gid=95855262#gid=95855262 ) │  │  │
+│  │ │ - Modification Logs (Audit Trail)                   │  │  │
+│  │ │ - Report Logs (Who generated what, when)            │  │  │
+│  │ │ - Session Logs (Login/Logout tracking)              │  │  │
+│  │ │ - Menu Items (Dynamic Modules)                      │  │  │
+│  │ │ - Backups (System Backups)                          │  │  │
+│  │ └─────────────────────────────────────────────────────┘    
+│  └──────────────────────────────────────────────────────────┘  
+└─────────────────────────────────────────────────────────────────┘
+
+WEBSITE WORKFLOW - Complete User Journey
+
+WORKFLOW 1: NEW USER ONBOARDING
+
+Step 1: Root User Creates Super Admin
+
+Root User Login
+    ↓
+Navigate to "Root User Management"
+    ↓
+Click "Create New Root User" (if needed) or "Manage Super Admins"
+    ↓
+Enter Details:
+    - Full Name
+    - Email
+    - Temporary Password
+    ↓
+System sends welcome email with:
+    - Temporary password
+    - Login link
+    - Initial setup instructions
+    ↓
+New Super Admin receives email & first login
+
+
+Step 2: Super Admin Creates Normal Users & Admins
+
+Super Admin Login
+    ↓
+Navigate to "User Management" Section
+    ↓
+Choose: Create Normal User OR Create Admin
+    ↓
+IF CREATE NORMAL USER:
+    - Enter: Name, Email, Phone, Department, Post
+    - System auto-assigns: "View Data Only" permission
+    - Set temporary password
+    ↓
+IF CREATE ADMIN:
+    - Enter: Name, Email, Phone, Department
+    - System auto-assigns: View, Modify, Generate Report permissions
+    - Set temporary password
+    ↓
+System sends welcome email to new user
+    ↓
+New user receives email & sets permanent password on first login
+
+
+
+
+WORKFLOW 2: FIRST TIME USER LOGIN
+
+
+User visits website
+    ↓
+Sees Login Page:
+    ┌─────────────────────────────────┐
+    │  N-DAMS Login                   │
+    │                                 │
+    │  Email: _________________       │
+    │  Password: ______________       │
+    │  [ ] Remember me                │
+    │                                 │
+    │  [    LOGIN    ]                │
+    │                                 │
+    │  Forgot Password? | Sign Up     │
+    └─────────────────────────────────┘
+    ↓
+Enter Email & Password
+    ↓
+System validates credentials against database
+    ↓
+IF LOGIN SUCCESSFUL:
+    - Check user role (Normal User/Admin/Super Admin/Root User)
+    - Generate JWT token
+    - Store session in database
+    - Log IP address, device type, timestamp
+    ↓
+REDIRECT TO ROLE-SPECIFIC DASHBOARD:
+    - Normal User → View-Only Dashboard
+    - Admin → Admin Dashboard with monitoring tools
+    - Super Admin → Management Dashboard with menu manager
+    - Root User → System Administration Dashboard
+    ↓
+IF LOGIN FAILED (3+ attempts):
+    - Show error message
+    - After 3 failed attempts, lock account for 30 minutes
+    - Send security alert email to user
+    ↓
+User sees dashboard based on their role
+    ↓
+System displays:
+    - Welcome message: "Hello, [User Name]"
+    - Last login time
+    - Available modules in sidebar (based on permissions)
+    - Quick stats/notifications
+```
+
+---
+
+### WORKFLOW 3: NORMAL USER VIEWING DATA & ACCESSING FEATURES
+
+```
+Normal User Logs In
+    ↓
+Sees Dashboard:
+    ┌─────────────────────────────────────────────────┐
+    │  WRSIMS - Welcome [User Name]                   │
+    │  Last Login: 2026-01-09 at 3:45 PM              │
+    ├──────────────┬────────────────────────────────┐ │
+    │              │                                │ │
+    │  Sidebar     │  Main Content Area             │ │
+    │ (Dynamic)    │  - Data Table (Excel-style)    │ │
+    │              │  - Filters on left             │ │
+    │ ┌──────────┐ │  - Action buttons              │ │
+    │ │Dashboard │ │  - Pagination                  │ │
+    │ │View Data │ │                                │ │
+    │ │		      │ │ Currently viewing: Station    │ │
+    │ │Profile   │ │  Performance Data              │ │
+    │ └──────────┘ │                                │ │
+    │              │  [Columns] [Filters] [Export]  │ │
+    │              │  ┌────────────────────────────┐│ │
+    │              │  │Station │Count │Revenue │   ││ │
+    │              │  ├────────────────────────────┤│ │
+    │              │  │Delhi   │5000 │₹50L     │   ││ │
+    │              │  │Mumbai  │4500 │₹45L     │   ││ │
+    │              │  │Bangalore│4000│₹40L     │   ││ │
+    │              │  └────────────────────────────┘│ │
+    │              │                                │ │
+    └──────────────┴────────────────────────────────┘ │
+    └─────────────────────────────────────────────────┘
+    ↓
+USER ACTIONS AVAILABLE:
+    1. VIEW DATA → Click module in sidebar → See filtered data
+    2. APPLY FILTERS → Click "Filter" icon → Select filter criteria
+       Example: Station = "Delhi", Date Range = "Jan 1-10"
+       ↓
+       System applies filters
+       ↓
+       Table refreshes showing only Delhi data from Jan 1-10
+       ↓
+    3. SORT DATA → Click column header → Sort ascending/descending
+    4. EXPORT DATA → Click "Export" → Choose format (Excel/CSV/PDF)
+       ↓
+       File downloads to user's computer
+       ↓
+    5. IF PERMISSION GRANTED - MODIFY DATA:
+       - Click "Edit" on any row
+       - Modify field values
+       - Click "Save"
+       ↓
+       System:
+       - Validates input
+       - Updates database
+       - Logs modification (who, what, when, IP address)
+       - Shows success message
+       ↓
+    6. IF PERMISSION GRANTED - ADD DATA:
+       - Click "Add New Record"
+       - Fill in form fields
+       - Click "Save"
+       ↓
+       System performs same logging as modify
+       ↓
+    7. IF PERMISSION GRANTED - GENERATE REPORT:
+       - Click "Generate Report"
+       - Select columns to include
+       - Apply filters
+       - Choose output format
+       - Click "Generate"
+       ↓
+       System:
+       - Processes data with filters
+       - Generates report with selected columns
+       - Logs report generation (who, when, what filters)
+       - Provides download link
+       
+```
+
+---
+
+### WORKFLOW 4: ADMIN MANAGING USERS & MONITORING SESSIONS
+
+```
+Admin Logs In
+    ↓
+Sees Admin Dashboard with additional sections:
+    ├─ Data Tables (View, Modify, Generate Reports)
+    ├─ Session Monitoring
+    ├─ User Management
+    └─ Communication Tools
+    ↓
+TASK 1: VIEW USER LOGIN/LOGOUT ACTIVITY
+    ├─ Click "Session Monitoring" in sidebar
+    ├─ See two tabs: [LOGIN SESSIONS] [LOGOUT SESSIONS]
+    │  ├─ LOGIN SESSIONS tab shows:
+    │  │   User Name | Login Time | IP Address | Device Type
+    │  │   (Latest logins at top)
+    │  │
+    │  └─ LOGOUT SESSIONS tab shows:
+    │      User Name | Logout Time | Session Duration | IP Address
+    │      (Latest logouts at top)
+    │
+    ├─ Apply filters (by user, date, IP, device, duration)
+    ├─ Export session report
+    ↓
+TASK 2: VIEW SPECIFIC USER'S DETAILED HISTORY
+    ├─ Click "User Details" section
+    ├─ Search for specific user (e.g., "BRC Station Officer")
+    ├─ See their complete profile:
+    │   - Name, Post, Contact details
+    │   - Login/Logout history (last 30 days)
+    │   - IP address history
+    │   - Device information
+    │   - Session durations
+    │   - Number of logins (daily/weekly/monthly)
+    │
+    ├─ Use date range filter (e.g., Jan 1-10, 9AM-5PM)
+    ├─ Export detailed user activity report
+    ↓
+TASK 5: GENERATE CUSTOM REPORT
+    ├─ Click "Generate Report" button
+    ├─ Select data table/module
+    ├─ Choose specific columns (e.g., out of 10, select 3-4)
+    ├─ Apply filters (date range, status, station, etc.)
+    ├─ Choose output format (Excel, PDF, CSV)
+    ├─ Click "Generate"
+    │   ↓
+    │   System:
+    │   - Processes filtered data
+    │   - Includes selected columns only
+    │   - Adds timestamp & generated by info
+    │   - Creates file
+    │   - Logs report details (Report Logs)
+    │   ↓
+    ├─ Download file
+    ├─ View Report Logs to see audit trail
+    │   (Who generated, when, what filters, what columns)
+```
+
+---
+
+### WORKFLOW 5: SUPER ADMIN CREATING DYNAMIC MODULES
+
+```
+Super Admin Logs In
+    ↓
+Clicks "Menu Manager" (Dynamic Module Creation)
+    ↓
+SCREEN: Menu Manager Dashboard
+    ┌──────────────────────────────────────────────────────┐
+    │  Menu Manager - Create & Manage Modules              │
+    │                                                      │
+    │  [+ Add New Module]  [Edit Existing]  [Delete]      │
+    │                                                      │
+    │  Current Modules:                                   │
+    │  ✓ View Data                                        │
+    │  ✓ Passenger Analytics                             │
+    │  ✓ Station Performance                             │
+    │  ✓ Route Management                                │
+    │  ✓ Revenue Tracking                                │
+    │                                                     │
+    └──────────────────────────────────────────────────────┘
+    ↓
+STEP 1: Click [+ Add New Module]
+    ↓
+FORM: Create New Module
+    ┌──────────────────────────────────────────────────────┐
+    │  Create New Module                                  │
+    │                                                     │
+    │  Module Name: [Inventory Hub____________]           │
+    │  Description: [Managing inventory stocks]          │
+    │  Select Icon: [📦 Inventory Icon]                  │
+    │  Category: [Operations ▼]                          │
+    │                                                     │
+    │  Data Source: [Select Table ▼]                     │
+    │               → inventory_stock                    │
+    │               → warehouses                         │
+    │               → suppliers                          │
+    │                                                     │
+    │  Step 2: Configure Columns & Filters →             │
+    │                                                     │
+    └──────────────────────────────────────────────────────┘
+    ↓
+STEP 2: Configure Columns & Filters
+    ├─ System shows available columns from selected table:
+    │   ┌────────────────────────────────┐
+    │   │ Columns:                       │
+    │   │ ☑ Item_ID                     │
+    │   │ ☑ Item_Name                   │
+    │   │ ☑ Category                    │
+    │   │ ☑ Quantity                    │
+    │   │ ☑ Unit_Price                  │
+    │   │ ☑ Last_Updated                │
+    │   │ ☐ Supplier_ID                 │
+    │   │ ☐ Warehouse_Location          │
+    │   │ ☐ Expiry_Date                 │
+    │   └────────────────────────────────┘
+    │
+    ├─ Super Admin selects which columns to display
+    │
+    ├─ SA then selects which columns to have FILTERS:
+    │   ┌────────────────────────────────┐
+    │   │ Enable Filters:                │
+    │   │ ☑ Item_Name (Text Search)     │
+    │   │ ☑ Category (Dropdown)         │
+    │   │ ☑ Quantity (Numeric Range)    │
+    │   │ ☑ Last_Updated (Date Range)   │
+    │   │ ☑ Unit_Price (Numeric Range)  │
+    │   └────────────────────────────────┘
+    │
+    └─ Click "Next"
+    ↓
+STEP 3: Assign to Roles & Users
+    ┌──────────────────────────────────────────────────────┐
+    │  Who can access this module?                        │
+    │                                                     │
+    │  ☑ All Admins                                      │
+    │  ☐ Specific Admins: [Select...]                   │
+    │                                                     │
+    │  ☑ All Normal Users                               │
+    │  ☐ Specific Normal Users: [Select...]             │
+    │                                                     │
+    │  ☑ Make visible to Super Admin (always)            │
+    │                                                     │
+    │  [Previous] [Deploy Module]                        │
+    └──────────────────────────────────────────────────────┘
+    ↓
+STEP 4: Click [Deploy Module]
+    ├─ System processes configuration
+    ├─ Auto-generates Excel-style dashboard
+    ├─ Updates database with new module
+    ├─ Refreshes sidebars for all assigned users
+    ↓
+RESULT: All assigned users now see "Inventory Hub" in sidebar
+    ├─ Immediately visible (no restart needed)
+    ├─ Next user action → Sidebar refreshes
+    ├─ Click "Inventory Hub" in sidebar
+    ↓
+    Dashboard auto-generates with:
+    ┌──────────────────────────────────────────────────────┐
+    │  Inventory Hub                                       │
+    │                                                     │
+    │  [Filters ▼]  [Columns ▼]  [Export]  [Refresh]   │
+    │                                                     │
+    │  Item_Name ▼│Category ▼│Quantity ▼│Last_Updated ▼│
+    │  ─────────────────────────────────────────────────  │
+    │  Item A     │Electronics│500     │2026-01-10     │
+    │  Item B     │Furniture │200     │2026-01-09     │
+    │  Item C     │Electronics│150     │2026-01-08     │
+    │                                                     │
+    │  [View Modification Logs] [View Report Logs]       │
+    │                                                     │
+    └──────────────────────────────────────────────────────┘
+    ↓
+ADDITIONAL: Super Admin can EDIT MODULE LATER
+    ├─ Click "Edit Module" in Menu Manager
+    ├─ Add new filters (e.g., add "Warehouse_Location" filter)
+    ├─ Remove columns from display
+    ├─ Change role assignments
+    ├─ Click "Update"
+    ↓
+    Changes deploy instantly to all users
+    ↓
+    Existing data unchanged, only display/filters updated
+```
+
+---
+
+### WORKFLOW 6: SUPER ADMIN MANAGING USER PERMISSIONS
+
+```
+Super Admin Logs In
+    ↓
+Clicks "Master Rights Panel" (Permission Management)
+    ↓
+SCREEN: Master Rights Panel
+    ┌──────────────────────────────────────────────────────┐
+    │  Master Rights Panel - User Permission Control       │
+    │                                                      │
+    │  [Search User: ___________] [Search by Role ▼]     │
+    │                                                      │
+    │  Normal Users (52):                                 │
+    │  ┌──────────────────────────────────────────────┐   │
+    │  │ User Name      │ View │Add │Mod │Rep │Del │  │   │
+    │  ├──────────────────────────────────────────────┤   │
+    │  │ User A (Delhi) │ ✓   │ ✗ │ ✗ │ ✗ │ ✗ │    │   │
+    │  │ User B (Mumbai)│ ✓   │ ✓ │ ✓ │ ✗ │ ✗ │    │   │
+    │  │ User C (Banglr)│ ✓   │ ✓ │ ✓ │ ✓ │ ✗ │    │   │
+    │  │ ...            │     │   │   │   │   │    │   │
+    │  └──────────────────────────────────────────────┘   │
+    │                                                      │
+    │  Admins (10):                                       │
+    │  ┌──────────────────────────────────────────────┐   │
+    │  │ Admin Name     │View │Mod │Rep │Del │Audit │  │   │
+    │  ├──────────────────────────────────────────────┤   │
+    │  │ Admin A        │ ✓  │ ✓ │ ✓ │ ✗ │ ✗ │      │   │
+    │  │ Admin B        │ ✓  │ ✓ │ ✓ │ ✓ │ ✓ │      │   │
+    │  │ ...            │    │   │   │   │   │      │   │
+    │  └──────────────────────────────────────────────┘   │
+    │                                                      │
+    └──────────────────────────────────────────────────────┘
+    ↓
+ACTION 1: GRANT TEMPORARY PERMISSION
+    ├─ Click on "User B (Mumbai)" row
+    ├─ Click toggle for "Add Data" permission → Turn ON
+    ├─ Set time limit:
+    │   ┌────────────────────────────────┐
+    │   │ Permission Duration:           │
+    │   │ ○ No limit (permanent)        │
+    │   │ ○ 1 day                       │
+    │   │ ○ 7 days                      │
+    │   │ ● 30 days (selected)          │
+    │   │ ○ Custom: Jan 15 to Feb 15    │
+    │   └────────────────────────────────┘
+    │
+    ├─ Click "Apply"
+    ├─ System shows: "Permission granted until Feb 10, 2026"
+    ├─ System sends email to User B
+    ├─ System sets auto-revoke timer
+    ↓
+    After 30 days: Permission auto-revoked
+    ↓
+    User B notified: "Your 'Add Data' permission has expired"
+    ↓
+ACTION 2: REVOKE PERMISSION
+    ├─ Click on "User C" row
+    ├─ Click toggle for "Modify Data" → Turn OFF
+    ├─ Confirm action: "Remove Modify Data permission?"
+    ├─ Click "Confirm"
+    ├─ System immediately revokes permission
+    ├─ System logs the change (Audit Log)
+    ├─ System notifies User C
+    ↓
+    Next time User C logs in:
+    - "Modify" buttons disabled
+    - Cannot edit existing records
+    ↓
+ACTION 3: BULK PERMISSION ASSIGNMENT
+    ├─ Select multiple users (checkbox):
+    │   ☑ User A
+    │   ☑ User B
+    │   ☑ User C
+    │   (Total: 3 selected)
+    │
+    ├─ Click "Bulk Permission Assign"
+    ├─ Choose permission to grant: [Generate Reports ▼]
+    ├─ Set duration: [30 days ▼]
+    ├─ Click "Apply to All 3 Users"
+    ├─ System grants permission to all 3 users
+    ├─ System logs each assignment
+    ├─ System sends notification to each user
+    ↓
+ACTION 4: TIME-LIMITED DELETE PERMISSION
+    ├─ Click "Admin A" row
+    ├─ Toggle "Delete Data" → Turn ON
+    ├─ Set duration: "Custom date range"
+    ├─ Start date: Jan 15, 2026
+    ├─ End date: Jan 31, 2026 (only for month-end inventory)
+    ├─ Click "Apply"
+    ├─ System grants delete permission temporarily
+    ├─ On Feb 1: Permission auto-revoked
+    ├─ Admin A notified of expiration
+```
+
+---
+
+### WORKFLOW 7: ROOT USER MANAGING BACKUPS
+
+```
+Root User Logs In
+    ↓
+Clicks "Backup Management" (System Administration)
+    ↓
+SCREEN: Backup Management Dashboard
+    ┌──────────────────────────────────────────────────────┐
+    │  Backup Management System                            │
+    │                                                      │
+    │  BACKUP SCHEDULE CONFIGURATION:                     │
+    │  ┌──────────────────────────────────────────────┐   │
+    │  │ Frequency: [Every Day ▼]                    │   │
+    │  │ Time: [02:00 AM ▼] (Off-peak hours)       │   │
+    │  │ Type: [Full Backup ▼]                      │   │
+    │  │ Retention: [Keep 30 days ▼]                │   │
+    │  │ Status: ✓ ENABLED                          │   │
+    │  │                                             │   │
+    │  │ [Save Configuration] [Test Backup Now]     │   │
+    │  └──────────────────────────────────────────────┘   │
+    │                                                      │
+    │  BACKUP HISTORY (Last 30 Days):                    │
+    │  ┌──────────────────────────────────────────────┐   │
+    │  │ Date/Time   │Type │Size │Duration│ Status  │   │
+    │  ├──────────────────────────────────────────────┤   │
+    │  │2026-01-10  │Full │4.2GB│12 min │✓ Success│   │
+    │  │ 02:00 AM   │     │     │       │         │   │
+    │  │            │[Restore][Delete][Verify]     │   │
+    │  │                                             │   │
+    │  │2026-01-09  │Full │4.1GB│11 min │✓ Success│   │
+    │  │ 02:00 AM   │     │     │       │         │   │
+    │  │                                             │   │
+    │  │2026-01-08  │Full │4.0GB│10 min │✓ Success│   │
+    │  │ 02:00 AM   │     │     │       │         │   │
+    │  │                                             │   │
+    │  │... (27 more backups)                        │   │
+    │  └──────────────────────────────────────────────┘   │
+    │                                                      │
+    │  SYSTEM STATUS:                                    │
+    │  └─ Last Backup: 2026-01-10 02:00 AM (Success)   │
+    │  └─ Next Scheduled: 2026-01-11 02:00 AM          │
+    │  └─ Storage Used: 156 GB / 200 GB                │
+    │  └─ Days Until Cleanup: 5 days                   │
+    │                                                      │
+    └──────────────────────────────────────────────────────┘
+    ↓
+ACTION 1: MODIFY BACKUP SCHEDULE
+    ├─ Change frequency: Every Day → Every Week (Monday)
+    ├─ Change time: 02:00 AM → 03:00 AM
+    ├─ Change type: Full Backup → Incremental (daily)
+    ├─ Click "Save Configuration"
+    ├─ System confirms: "Backup schedule updated successfully"
+    ├─ New schedule takes effect from next backup
+    ↓
+ACTION 2: RESTORE FROM BACKUP
+    ├─ Click [Restore] button on specific backup
+    ├─ See confirmation: "Restore from 2026-01-09 02:00 AM backup?"
+    ├─ This will overwrite current data
+    ├─ Choose:
+    │   ○ Full restore (all data)
+    │   ○ Partial restore (select tables)
+    │   ○ Point-in-time restore (to specific time)
+    │
+    ├─ Click "Proceed with Restore"
+    ├─ System:
+    │   - Stops accepting new requests
+    │   - Restores database from backup
+    │   - Verifies integrity
+    │   - Resumes service
+    │
+    ├─ Root User notified: "Restore completed successfully"
+    ├─ All users notified of system restore
+    ├─ Log entry created (Audit Trail)
+    ↓
+ACTION 3: TEST BACKUP INTEGRITY
+    ├─ Click "Test Backup Now"
+    ├─ System runs dry-run restore (doesn't change live data)
+    ├─ Verifies backup can be restored properly
+    ├─ Shows result: "✓ Backup is healthy and restorable"
+    ├─ If issue found: "⚠ Backup corrupted - manual intervention needed"
+    ↓
+ACTION 4: VIEW BACKUP ALERTS
+    ├─ Notification bell shows alerts:
+    │   - Backup failed at 02:00 AM
+    │   - Storage usage at 80% of quota
+    │   - Last backup is 3 days old (if schedule interrupted)
+    │
+    ├─ Click alert to see details
+    ├─ Take corrective action
+```
+
+---
+
+## 📱 KEY USER ACTIONS & SCREEN FLOWS
+
+### Common User Actions
+
+| User Action | Screen Flow | Time Required | Impact |
+|---|---|---|---|
+| **Login** | Enter credentials → Validate → Redirect to dashboard | 2-3 sec | Session created, logged |
+| **View Data** | Click module → Select filters → Apply → See results | 1-2 sec | Data loaded, displayed |
+| **Export Data** | Click Export → Select columns/format → Download | 3-5 sec | File created, report logged |
+| **Modify Record** | Click Edit → Update fields → Save → Confirm | 5-10 sec | Database updated, audit logged |
+| **Generate Report** | Select columns → Apply filters → Generate → Download | 10-20 sec | Report created, logged with filters |
+| **Add New Record** | Click Add → Fill form → Validate → Save | 5-10 sec | Record created, audit logged |
+| **Change Permission** | Select user → Toggle permission → Set duration → Apply | 3-5 sec | Permission updated, user notified |
+| **Create Module** | Enter details → Configure columns → Assign roles → Deploy | 2-3 min | Module created, all users see it |
+
+---
+
+## 🔒 SECURITY WORKFLOW - Authentication & Authorization
+
+```
+USER ATTEMPTS LOGIN
+    ↓
+┌─────────────────────────────────────────┐
+│ AUTHENTICATION PHASE                    │
+├─────────────────────────────────────────┤
+│ 1. Validate email format               │
+│ 2. Query database for user record      │
+│ 3. Validate password against hash      │
+│ 4. Check account status (active/locked)│
+│ 5. Generate JWT token (expires 24hrs)  │
+│ 6. Store session in database           │
+│ 7. Log: IP address, device, timestamp  │
+│ 8. Send login notification email       │
+└─────────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────────┐
+│ AUTHORIZATION PHASE                     │
+├─────────────────────────────────────────┤
+│ 1. Check user role                     │
+│ 2. Load role-specific permissions      │
+│ 3. Load module/menu assignments        │
+│ 4. Check time-limited permissions      │
+│ 5. Build sidebar with accessible items │
+│ 6. Set feature availability flags      │
+│ 7. Redirect to role-specific dashboard │
+└─────────────────────────────────────────┘
+    ↓
+USER SEES CUSTOMIZED DASHBOARD
+    ├─ Sidebar shows only assigned modules
+    ├─ Buttons disabled based on permissions
+    ├─ Features available match role & grants
+    └─ All actions logged with user ID & timestamp
+```
+
+---
+
+## 📊 DATA FLOW - From Input to Audit Log
+
+```
+USER MODIFIES A RECORD
+    ↓
+USER FILLS FORM & CLICKS "SAVE"
+    ├─ Frontend: Client-side validation
+    │   - Check required fields
+    │   - Validate data types
+    │   - Check length/format
+    ├─ If validation fails: Show error to user
+    ├─ If validation passes: Send to backend
+    ↓
+BACKEND RECEIVES REQUEST
+    ├─ Verify JWT token (still valid?)
+    ├─ Verify user has "Modify Data" permission
+    ├─ Verify user is in allowed time window (if time-limited)
+    ├─ If checks fail: Reject with error
+    ├─ If checks pass: Proceed to data update
+    ↓
+DATABASE UPDATE
+    ├─ Read old record from database
+    ├─ Update with new values
+    ├─ Write new record to database
+    ├─ Transaction commits
+    ↓
+AUDIT LOG CREATION (Automatic)
+    ├─ Capture:
+    │   - User ID
+    │   - User Name
+    │   - Timestamp (date + time + timezone)
+    │   - IP Address
+    │   - Device Type
+    │   - Session ID
+    │   - Table Name (which table modified)
+    │   - Record ID (which row)
+    │   - Field Name (which columns changed)
+    │   - Old Value → New Value
+    │   - Change Type (Add/Modify/Delete)
+    │   - Reason (if provided by user)
+    │
+    ├─ Insert record into Modification_Logs table
+    ↓
+NOTIFICATION SENT TO USER
+    ├─ Frontend: Show success message
+    │   "Record updated successfully"
+    │   "Changes logged at 3:45 PM"
+    ↓
+OPTIONAL: REPORT AUDIT LOG
+    └─ Super Admin/Root User can view anytime
+       - Who changed what
+       - When exactly it happened
+       - From which IP address
+       - Using which device
+       - Old values vs new values
+```
+
+---
+
+## 🎯 SYSTEM WORKFLOW - Data Flow Diagram
+
+```
+┌─────────────┐
+│   USERS     │
+├─────────────┤
+│ Normal User │
+│ Admin       │
+│ Super Admin │
+│ Root User   │
+└──────┬──────┘
+       │
+       ↓ (1. Login with credentials)
+┌────────────────────────────────────┐
+│  AUTHENTICATION LAYER              │
+│  - JWT Token Generation            │
+│  - Session Management              │
+│  - IP Address Logging              │
+└────────────────────────────────────┘
+       │
+       ↓ (2. Request with valid token)
+┌────────────────────────────────────┐
+│  AUTHORIZATION LAYER               │
+│  - Check Role                      │
+│  - Load Permissions                │
+│  - Load Module Assignments         │
+│  - Check Time-Limited Access       │
+└────────────────────────────────────┘
+       │
+       ↓ (3. Approved request)
+┌────────────────────────────────────┐
+│  API LAYER (REST Endpoints)        │
+│  - GET (retrieve data)             │
+│  - POST (create data)              │
+│  - PUT/PATCH (update data)         │
+│  - DELETE (remove data)            │
+└────────────────────────────────────┘
+       │
+       ↓ (4. Validated request)
+┌────────────────────────────────────┐
+│  BUSINESS LOGIC LAYER              │
+│  - Data Validation                 │
+│  - Business Rules Checking         │
+│  - Calculation & Processing        │
+│  - Report Generation               │
+└────────────────────────────────────┘
+       │
+       ↓ (5. Processed request)
+┌────────────────────────────────────┐
+│  DATABASE LAYER                    │
+│  ┌──────────────────────────────┐ │
+│  │ USERS TABLE                  │ │
+│  │ RAILWAY_DATA TABLE           │ │
+│  │ PERMISSIONS TABLE            │ │
+│  │ MODULES TABLE                │ │
+│  │ MODIFICATION_LOGS TABLE      │ │
+│  │ REPORT_LOGS TABLE            │ │
+│  │ SESSION_LOGS TABLE           │ │
+│  │ BACKUPS TABLE                │ │
+│  └──────────────────────────────┘ │
+└────────────────────────────────────┘
+       │
+       ├─→ (6a. If data modified)
+       │   ├─ Update railway data
+       │   ├─ Create audit log entry
+       │   └─ Log timestamp & user
+       │
+       ├─→ (6b. If report generated)
+       │   ├─ Process filtered data
+       │   ├─ Generate file
+       │   └─ Log report details
+       │
+       └─→ (6c. If session tracked)
+           ├─ Update login/logout records
+           └─ Store session duration
+       │
+       ↓ (7. Return response)
+┌────────────────────────────────────┐
+│  RESPONSE LAYER                    │
+│  - Success/Error messages          │
+│  - Data returned to user           │
+│  - File download links             │
+│  - Notifications sent              │
+└────────────────────────────────────┘
+       │
+       ↓ (8. Display to user)
+┌────────────────────────────────────┐
+│  FRONTEND (User Dashboard)         │
+│  - Update UI                       │
+│  - Show results/tables             │
+│  - Display notifications           │
+│  - Log client events               │
+└────────────────────────────────────┘
+```
+
+---
+
+## 🚀 QUICK REFERENCE - Complete Website Workflow Summary
+
+| Phase | Action | Screen | Duration | Result |
+|---|---|---|---|---|
+| **1. Access** | User visits website | Login page | - | Login form displayed |
+| **2. Authentication** | Enter credentials | Login form | 2-3 sec | JWT token generated |
+| **3. Authorization** | System checks role & permissions | Backend | 1 sec | Permissions loaded |
+| **4. Dashboard Load** | Redirect to role-specific dashboard | Dashboard | 2-3 sec | Modules & features visible |
+| **5. Navigation** | Click module in sidebar | Dynamic dashboard | 1 sec | Data table displays |
+| **6. Filter** | Select filters & apply | Filter panel | 1-2 sec | Data refreshes |
+| **7. View Data** | Scroll & examine results | Data table | - | User sees filtered data |
+| **8. Action** | Modify/Add/Delete/Export | Action modal | 5-20 sec | Data updated or file created |
+| **9. Audit Log** | System auto-logs action | Backend (automatic) | <1 sec | Entry added to logs |
+| **10. Notify** | System sends notification | User inbox | 1-2 sec | User sees confirmation |
+| **12. Logout** | Click logout | Session destroyed | 1 sec | Logged out, logged to history |
+
+---
+
+## 📈 Project Success Metrics
+
+### Performance Metrics
+- **Page Load Time:** < 2 seconds
+- **Data Query Response:** < 1 second
+- **Report Generation:** < 5 seconds
+- **System Uptime:** 99.9%
+- **Concurrent Users:** Support 500+ simultaneous logins
+
+### Security Metrics
+- **Authentication Success Rate:** 99.99%
+- **Unauthorized Access Attempts:** 0 (logged but prevented)
+- **Data Encryption:** 100% of sensitive data
+- **Audit Trail Completeness:** 100% of actions logged
+- **Backup Success Rate:** 99.8%
+
+### User Adoption Metrics
+- **Daily Active Users:** Target 80% of registered users
+- **Feature Usage:** 90% of features used regularly
+- **User Satisfaction:** Target 4.5/5 stars
+- **Support Tickets:** < 5 per day after stabilization
+- **System Availability Perceived:** 99%+
+
+---
+
+## 📞 SUPPORT & MAINTENANCE WORKFLOW
+
+```
+USER FACES ISSUE
+    ↓
+├─ Report through "Help" → Support Ticket Created
+├─ Send Message to Admin → Escalated automatically
+├─ Contact Phone/Email → Admin responds
+    ↓
+ADMIN REVIEWS ISSUE
+    ├─ Check system logs
+    ├─ Verify user permissions
+    ├─ Check modification logs
+    ├─ Attempt to reproduce
+    ↓
+ADMIN RESOLVES ISSUE
+    ├─ Fix permission/access issue
+    ├─ Guide user through process
+    ├─ Escalate to Super Admin if needed
+    ├─ Escalate to Root User if system issue
+    ↓
+SOLUTION PROVIDED
+    ├─ Send resolution message to user
+    ├─ Log resolution in ticket
+    ├─ Close ticket
+    ├─ Schedule follow-up (if needed)
+    ↓
+CONTINUOUS MONITORING
+    ├─ Daily system health checks
+    ├─ Weekly performance reviews
+    ├─ Monthly security audits
+    ├─ Quarterly feature updates
+```
+
+---
+
+**Document Complete**  
+**Version:** 1.0  
+**Last Updated:** January 10, 2026  
+**Status:** Ready for Implementation
+
+

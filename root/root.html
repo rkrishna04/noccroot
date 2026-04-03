@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Root Security & Backup Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1a535b",
+                        "background-light": "#fcfdfc",
+                        "background-dark": "#1a1e23",
+                        "surface-dark": "#24292f",
+                        "accent-gold": "#C8AA6E",
+                        "accent-red": "#D85B42",
+                        "accent-green": "#078834"
+                    },
+                    fontFamily: { "display": ["Manrope", "sans-serif"] }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        body { font-family: 'Manrope', sans-serif; transition: background-color 0.3s; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #1a1e23; }
+        ::-webkit-scrollbar-thumb { background: #1a535b; border-radius: 10px; }
+        .system-lockdown { filter: grayscale(1) sepia(0.5) hue-rotate(-50deg) brightness(0.5); pointer-events: none; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#101819] dark:text-[#e9f0f1] font-display selection:bg-primary/30">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const Dashboard = () => {
+            // --- STATE MANAGEMENT ---
+            const [isLocked, setIsLocked] = useState(false);
+            const [isBackingUp, setIsBackingUp] = useState(false);
+            const [backupLogs, setBackupLogs] = useState([
+                { id: 1, time: '2026-03-09 08:00:0', hash: 'sha256:7f8d...a21b', status: 'Success', size: '15 KB' },
+                { id: 2, time: '2026-03-06 04:30:0', hash: 'sha256:3a1c...eef9', status: 'Success', size: '10 KB' }
+            ]);
+            const [securityFeed, setSecurityFeed] = useState([
+                { id: 101, type: 'System', msg: "Dashboard Initialized", time: 'Just now' }
+            ]);
+            const [admins, setAdmins] = useState([
+                
+            ]);
+
+            // --- LOGIC: TRUE BACKUP ENGINE ---
+            const formatBytes = (bytes) => {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            };
+
+            const triggerBackup = () => {
+                setIsBackingUp(true);
+                addSecurityLog('Warning', 'Manual Backup Process Started');
+
+                setTimeout(() => {
+                    const mockDB = { system: "NOCC_ROOT", data: Array(500).fill({ node: "WR-VADODARA", status: "OK" }) };
+                    const blob = new Blob([JSON.stringify(mockDB, null, 2)], { type: 'application/json' });
+                    const trueSize = formatBytes(blob.size);
+                    
+                    // Physical Download
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `ROOT_BKP_${Date.now()}.json`;
+                    link.click();
+
+                    setBackupLogs([{
+                        id: Date.now(),
+                        time: new Date().toLocaleString(),
+                        hash: `sha256:${Math.random().toString(16).slice(2, 10)}...`,
+                        status: 'Success',
+                        size: trueSize
+                    }, ...backupLogs]);
+
+                    setIsBackingUp(false);
+                    addSecurityLog('System', `Backup Complete (${trueSize})`);
+                }, 2000);
+            };
+
+            // --- LOGIC: SECURITY FEED ---
+            const addSecurityLog = (type, msg) => {
+                const newLog = { id: Date.now(), type, msg, time: '1s ago' };
+                setSecurityFeed(prev => [newLog, ...prev.slice(0, 10)]);
+            };
+
+            // --- LOGIC: ADMIN MGMT ---
+            const toggleAdmin = (id) => {
+                setAdmins(admins.map(a => a.id === id ? { ...a, status: a.status === 'active' ? 'revoked' : 'active' } : a));
+                addSecurityLog('System', `Permissions modified for User ID: ${id}`);
+            };
+
+            return (
+                <div className={`flex h-screen overflow-hidden ${isLocked ? 'system-lockdown' : ''}`}>
+                    {/* Side Navigation */}
+                    <aside className="w-64 flex-shrink-0 border-r border-[#d3e1e3] dark:border-[#2b313a] flex flex-col bg-background-light dark:bg-background-dark">
+                        <div className="p-6">
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+                                    <span className="material-symbols-outlined">terminal</span>
+                                </div>
+                                <div>
+                                    <h1 className="text-lg font-bold leading-tight">System Root</h1>
+                                    <p className="text-xs text-[#5a868c]">v4.2.0-stable</p>
+                                </div>
+                            </div>
+                            <nav className="space-y-1">
+                                <a href="root.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5a868c] hover:bg-[#e9f0f1] dark:hover:bg-[#2b313a] transition-colors">
+        <span className="material-symbols-outlined text-sm">dashboard</span>
+        <span className="text-sm">Overview</span>
+    </a>
+
+    {/* System Backup Link */}
+    <a href="backup.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5a868c] hover:bg-[#e9f0f1] dark:hover:bg-[#2b313a] transition-colors">
+        <span className="material-symbols-outlined text-sm">database</span>
+        <span className="text-sm">System Backup</span>
+    </a>
+
+    {/* SA Management Link */}
+    <a href="sa.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5a868c] hover:bg-[#e9f0f1] dark:hover:bg-[#2b313a] transition-colors">
+        <span className="material-symbols-outlined text-sm">shield_person</span>
+        <span className="text-sm">SA Management</span>
+    </a>
+                            </nav>
+                        </div>
+                        <div className="mt-auto p-4 border-t border-[#d3e1e3] dark:border-[#2b313a]">
+                            <button 
+                                onClick={() => setIsLocked(true)}
+                                className="w-full flex items-center justify-center gap-2 py-3 bg-accent-red text-white font-bold rounded-lg hover:bg-accent-red/90 transition-all shadow-lg shadow-accent-red/20">
+                                <span className="material-symbols-outlined text-sm">lock_reset</span>
+                                <span className="text-xs uppercase tracking-widest">Emergency Lock</span>
+                            </button>
+                        </div>
+                    </aside>
+
+                    {/* Main Content */}
+                    <main className="flex-1 flex flex-col overflow-hidden bg-[#f9fbfb] dark:bg-background-dark">
+                        <header className="h-16 border-b border-[#d3e1e3] dark:border-[#2b313a] flex items-center justify-between px-8 bg-background-light dark:bg-background-dark">
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm font-medium text-[#5a868c]">Path:</span>
+                                <div className="flex items-center text-xs font-mono bg-[#e9f0f1] dark:bg-[#2b313a] px-3 py-1 rounded border border-[#d3e1e3] dark:border-[#3a414b]">
+                                    root <span className="mx-2 opacity-50">/</span> security <span className="mx-2 opacity-50">/</span> dashboard
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <div className="flex items-center gap-2 text-accent-green">
+                                    <div className="size-2 rounded-full bg-accent-green animate-pulse"></div>
+                                    <span className="text-xs font-bold uppercase tracking-tighter">System Pulse: Nominal</span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div className="flex-1 overflow-y-auto p-8">
+                            {/* Stats Row */}
+                            <div className="grid grid-cols-4 gap-6 mb-8">
+                                <StatCard icon="cloud_done" label="Total Backups" value={backupLogs.length + 246} color="text-primary" />
+                                <StatCard icon="monitor_heart" label="System Health" value="99%" color="text-accent-green" />
+                                <StatCard icon="key_visualizer" label="Active SAs" value={admins.filter(a=>a.status==='active').length} color="text-accent-gold" />
+                                <StatCard icon="verified_user" label="Days Secure" value="342" color="text-accent-red" />
+                            </div>
+
+                            <div className="grid grid-cols-12 gap-8">
+                                {/* Left Column */}
+                                <div className="col-span-8 space-y-8">
+                                    <section className="bg-background-light dark:bg-surface-dark rounded-xl border border-[#d3e1e3] dark:border-[#3a414b] overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-[#d3e1e3] dark:border-[#3a414b] flex justify-between items-center bg-[#fcfdfc] dark:bg-[#2b313a]/50">
+                                            <h2 className="text-lg font-bold flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-primary">database</span>
+                                                Backup Control Center
+                                            </h2>
+                                            <button 
+                                                onClick={triggerBackup}
+                                                disabled={isBackingUp}
+                                                className="px-6 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 transition-all uppercase tracking-widest disabled:opacity-50">
+                                                {isBackingUp ? 'Processing...' : 'Run Manual Backup'}
+                                            </button>
+                                        </div>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left">
+                                                <thead className="bg-[#e9f0f1]/30 dark:bg-[#1a1e23]/30 text-[#5a868c] text-[10px] uppercase font-bold">
+                                                    <tr>
+                                                        <th className="px-6 py-3">Timestamp</th>
+                                                        <th className="px-6 py-3">Status</th>
+                                                        <th className="px-6 py-3">True Size</th>
+                                                        <th className="px-6 py-3 text-right">Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-[#d3e1e3] dark:divide-[#3a414b] text-sm">
+                                                    {backupLogs.map(log => (
+                                                        <tr key={log.id} className="hover:bg-primary/5 transition-colors">
+                                                            <td className="px-6 py-4 font-mono text-xs">{log.time}</td>
+                                                            <td className="px-6 py-4">
+                                                                <span className="flex items-center gap-2 text-accent-green font-bold text-xs uppercase">
+                                                                    <span className="size-1.5 rounded-full bg-accent-green"></span> {log.status}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-4 font-bold">{log.size}</td>
+                                                            <td className="px-6 py-4 text-right">
+                                                                <button className="text-primary font-bold text-xs">RE-DOWNLOAD</button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </section>
+                                </div>
+
+                                {/* Right Column */}
+                                <div className="col-span-4 space-y-8">
+                                    {/* Security Feed */}
+                                    <section className="bg-background-light dark:bg-surface-dark rounded-xl border border-[#d3e1e3] dark:border-[#3a414b] flex flex-col h-[350px]">
+                                        <div className="px-6 py-4 border-b border-[#d3e1e3] dark:border-[#3a414b] flex items-center justify-between">
+                                            <h2 className="text-sm font-bold uppercase tracking-widest">Live Security Feed</h2>
+                                            <span className="size-2 rounded-full bg-accent-green animate-pulse"></span>
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                                            {securityFeed.map(feed => (
+                                                <div key={feed.id} className="p-3 bg-[#e9f0f1]/30 dark:bg-[#1a1e23]/30 border border-[#d3e1e3] dark:border-[#3a414b] rounded-lg">
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className={`text-[9px] font-bold uppercase ${feed.type === 'Warning' ? 'text-accent-red' : 'text-[#5a868c]'}`}>{feed.type}</span>
+                                                        <span className="text-[9px] text-[#5a868c]">{feed.time}</span>
+                                                    </div>
+                                                    <p className="text-xs font-medium">{feed.msg}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+
+                                    {/* Admin Management */}
+                                    <section className="bg-background-light dark:bg-surface-dark rounded-xl border border-[#d3e1e3] dark:border-[#3a414b]">
+                                        <div className="px-6 py-4 border-b border-[#d3e1e3] dark:border-[#3a414b]">
+                                            <h2 className="text-sm font-bold uppercase tracking-widest">SA Accounts</h2>
+                                        </div>
+                                        <div className="p-4 space-y-3">
+                                            {admins.map(admin => (
+                                                <div key={admin.id} className={`flex items-center justify-between p-3 rounded-lg border border-[#d3e1e3] dark:border-[#3a414b] ${admin.status === 'revoked' ? 'opacity-50 grayscale' : ''}`}>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="size-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">{admin.id}</div>
+                                                        <div>
+                                                            <p className={`text-xs font-bold ${admin.status === 'revoked' ? 'line-through' : ''}`}>{admin.name}</p>
+                                                            <p className="text-[10px] text-[#5a868c]">{admin.status === 'active' ? `Active ${admin.lastSeen}` : 'REVOKED'}</p>
+                                                        </div>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => toggleAdmin(admin.id)}
+                                                        className={`text-[10px] font-bold uppercase tracking-tighter hover:underline ${admin.status === 'active' ? 'text-accent-red' : 'text-accent-green'}`}>
+                                                        {admin.status === 'active' ? 'Revoke' : 'Restore'}
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const StatCard = ({ icon, label, value, color }) => (
+            <div className="bg-background-light dark:bg-surface-dark p-6 rounded-xl border border-[#d3e1e3] dark:border-[#3a414b] hover:border-primary transition-all group">
+                <div className="flex justify-between items-start mb-4">
+                    <span className={`material-symbols-outlined ${color} group-hover:scale-110 transition-transform`}>{icon}</span>
+                </div>
+                <p className="text-[10px] text-[#5a868c] uppercase tracking-widest font-black">{label}</p>
+                <p className="text-3xl font-black mt-1 tracking-tighter">{value}</p>
+            </div>
+        );
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<Dashboard />);
+    </script>
+</body>
+</html>
+
+

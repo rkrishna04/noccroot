@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>SA Management | System Root</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1a535b",
+                        "background-light": "#fcfdfc",
+                        "background-dark": "#1a1e23",
+                        "surface-dark": "#24292f",
+                        "accent-gold": "#C8AA6E",
+                        "accent-red": "#D85B42",
+                        "accent-green": "#078834"
+                    },
+                    fontFamily: { "display": ["Manrope", "sans-serif"] }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        body { font-family: 'Manrope', sans-serif; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #1a1e23; }
+        ::-webkit-scrollbar-thumb { background: #1a535b; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#101819] dark:text-[#e9f0f1] font-display selection:bg-primary/30">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const SAManagementApp = () => {
+            // --- STATE: Super Admin List ---
+            const [saAccounts, setSaAccounts] = useState([
+                
+            ]);
+
+            // --- STATE: Form Controls ---
+            const [formData, setFormData] = useState({ fullName: '', email: '', tempPass: '' });
+            const [isProcessing, setIsProcessing] = useState(false);
+            const [notification, setNotification] = useState(null);
+
+            // --- WORKFLOW: STEP 1 - CREATE SUPER ADMIN ---
+            const handleCreateSA = (e) => {
+                e.preventDefault();
+                setIsProcessing(true);
+
+                // Simulating Backend Logic Layer (RBAC Processing)
+                setTimeout(() => {
+                    const newSA = {
+                        id: Date.now(),
+                        name: formData.fullName.toLowerCase().replace(/\s+/g, '_') + '_admin',
+                        email: formData.email,
+                        initial: formData.fullName.split(' ').map(n => n[0]).join('').toUpperCase(),
+                        status: 'Pending Setup',
+                        active: true
+                    };
+
+                    setSaAccounts([newSA, ...saAccounts]);
+                    setNotification(`Success: Welcome email dispatched to ${formData.email}`);
+                    setFormData({ fullName: '', email: '', tempPass: '' });
+                    setIsProcessing(false);
+
+                    setTimeout(() => setNotification(null), 5000);
+                }, 1500);
+            };
+
+            const toggleStatus = (id) => {
+                setSaAccounts(saAccounts.map(acc => 
+                    acc.id === id ? { ...acc, active: !acc.active, status: acc.active ? 'Revoked' : 'Active' } : acc
+                ));
+            };
+
+            return (
+                <div className="flex h-screen overflow-hidden">
+                    {/* --- SIDE NAVIGATION --- */}
+                    <aside className="w-64 flex-shrink-0 border-r border-[#d3e1e3] dark:border-[#2b313a] flex flex-col bg-background-light dark:bg-background-dark">
+                        <div className="p-6">
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+                                    <span className="material-symbols-outlined">terminal</span>
+                                </div>
+                                <div>
+                                    <h1 className="text-lg font-bold leading-tight">System Root</h1>
+                                    <p className="text-xs text-[#5a868c]">v4.2.0-stable</p>
+                                </div>
+                            </div>
+                            <nav className="space-y-1">
+    {/* Cleaned up the double href and pointed it to root.html */}
+    <a href="root.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#5a868c] hover:bg-[#e9f0f1] dark:hover:bg-[#2b313a]">
+        <span className="material-symbols-outlined text-sm">dashboard</span>
+        <span className="text-sm">Overview</span>
+    </a>
+    
+    <a href="backup.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#e9f0f1] dark:hover:bg-[#2b313a] transition-colors text-[#5a868c]">
+        <span className="material-symbols-outlined">database</span>
+        <span className="text-sm">System Backup</span>
+    </a>
+
+    <a href="sa.html" className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary dark:text-[#e9f0f1] font-semibold border-l-4 border-primary">
+        <span className="material-symbols-outlined text-sm">shield_person</span>
+        <span className="text-sm">SA Management</span>
+    </a>
+</nav>
+                        </div>
+                        <div className="mt-auto p-4 border-t border-[#d3e1e3] dark:border-[#2b313a]">
+                            <button className="w-full flex items-center justify-center gap-2 py-3 bg-accent-red text-white font-bold rounded-lg uppercase tracking-widest text-xs">
+                                <span className="material-symbols-outlined text-sm">lock_reset</span>
+                                Emergency Lock
+                            </button>
+                        </div>
+                    </aside>
+
+                    {/* --- MAIN CONTENT --- */}
+                    <main className="flex-1 flex flex-col overflow-hidden bg-[#f9fbfb] dark:bg-background-dark">
+                        {/* Header */}
+                        <header className="h-16 border-b border-[#d3e1e3] dark:border-[#2b313a] flex items-center justify-between px-8 bg-background-light dark:bg-background-dark z-10">
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm font-medium text-[#5a868c]">Path:</span>
+                                <div className="text-xs font-mono bg-[#e9f0f1] dark:bg-[#2b313a] px-3 py-1 rounded border border-[#d3e1e3] dark:border-[#3a414b]">
+                                    root <span class="mx-2 opacity-50">/</span> security <span class="mx-2 opacity-50">/</span> sa-mgmt
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 text-right">
+                                <div>
+                                    <p className="text-sm font-bold leading-none uppercase tracking-tighter">Krishnakumar_Root</p>
+                                    <p className="text-[10px] text-primary uppercase font-bold">System Root</p>
+                                </div>
+                                <div className="size-10 rounded-full border-2 border-primary bg-slate-700 flex items-center justify-center font-bold">RK</div>
+                            </div>
+                        </header>
+
+                        <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                            {notification && (
+                                <div className="bg-accent-green/10 border border-accent-green/20 p-4 rounded-xl flex items-center gap-3 text-accent-green animate-pulse">
+                                    <span className="material-symbols-outlined text-sm">mail</span>
+                                    <span className="text-xs font-bold uppercase tracking-widest">{notification}</span>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-12 gap-8">
+                                {/* LEFT: Creation Form */}
+                                <section className="col-span-5 bg-background-light dark:bg-surface-dark rounded-xl border border-[#d3e1e3] dark:border-[#3a414b] p-6 shadow-xl">
+                                    <div className="mb-6">
+                                        <h2 className="text-lg font-bold flex items-center gap-2 mb-1">
+                                            <span className="material-symbols-outlined text-primary">person_add</span>
+                                            Step 1: Create Super Admin
+                                        </h2>
+                                        <p className="text-xs text-[#5a868c]">Initialize a new administrative account and trigger credentials via email.</p>
+                                    </div>
+
+                                    <form onSubmit={handleCreateSA} className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] uppercase font-bold text-[#5a868c] ml-1">Full Name</label>
+                                            <input required type="text" className="w-full bg-[#e9f0f1] dark:bg-background-dark border border-[#d3e1e3] dark:border-[#3a414b] p-3 rounded-lg text-sm focus:border-primary outline-none" 
+                                                value={formData.fullName} onChange={(e) => setFormData({...formData, fullName: e.target.value})} placeholder="e.g. Krishna Rathwa" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] uppercase font-bold text-[#5a868c] ml-1">Email Address</label>
+                                            <input required type="email" className="w-full bg-[#e9f0f1] dark:bg-background-dark border border-[#d3e1e3] dark:border-[#3a414b] p-3 rounded-lg text-sm focus:border-primary outline-none" 
+                                                value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="admin@westernrailway.com" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] uppercase font-bold text-[#5a868c] ml-1">Temporary Password</label>
+                                            <input required type="text" className="w-full bg-[#e9f0f1] dark:bg-background-dark border border-[#d3e1e3] dark:border-[#3a414b] p-3 rounded-lg text-sm font-mono focus:border-primary outline-none" 
+                                                value={formData.tempPass} onChange={(e) => setFormData({...formData, tempPass: e.target.value})} placeholder="SA_2026_TEMP" />
+                                        </div>
+                                        <button disabled={isProcessing} className="w-full py-4 bg-primary text-white rounded-lg font-bold uppercase text-xs tracking-[0.2em] shadow-lg shadow-primary/20 hover:scale-[1.01] transition-all disabled:opacity-50">
+                                            {isProcessing ? 'Initializing System Workflow...' : 'Create & Send Welcome Email'}
+                                        </button>
+                                    </form>
+                                </section>
+
+                                {/* RIGHT: Real-time Inventory */}
+                                <section className="col-span-7 space-y-4">
+                                    <div className="flex items-center justify-between px-2">
+                                        <h2 className="text-xs font-bold uppercase text-[#5a868c] tracking-widest">Active Inventory</h2>
+                                        <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">{saAccounts.length} Total</span>
+                                    </div>
+                                    <div className="bg-background-light dark:bg-surface-dark rounded-xl border border-[#d3e1e3] dark:border-[#3a414b] overflow-hidden">
+                                        <table className="w-full text-left text-sm">
+                                            <thead className="bg-[#e9f0f1]/30 dark:bg-[#1a1e23]/30 text-[#5a868c] text-[10px] uppercase font-bold">
+                                                <tr>
+                                                    <th className="px-6 py-4">Identity</th>
+                                                    <th className="px-6 py-4">Status</th>
+                                                    <th className="px-6 py-4 text-right">Permission</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-[#d3e1e3] dark:divide-[#3a414b]">
+                                                {saAccounts.map(acc => (
+                                                    <tr key={acc.id} className="hover:bg-primary/5 transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`size-8 rounded-lg flex items-center justify-center font-bold text-xs ${acc.active ? 'bg-primary/20 text-primary' : 'bg-accent-red/10 text-accent-red'}`}>{acc.initial}</div>
+                                                                <div>
+                                                                    <p className={`font-bold ${!acc.active && 'line-through opacity-50'}`}>{acc.name}</p>
+                                                                    <p className="text-[10px] text-[#5a868c]">{acc.email}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${acc.active ? 'bg-accent-green/10 text-accent-green' : 'bg-accent-red/10 text-accent-red'}`}>
+                                                                {acc.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <button onClick={() => toggleStatus(acc.id)} className={`text-[10px] font-bold uppercase hover:underline ${acc.active ? 'text-accent-red' : 'text-primary'}`}>
+                                                                {acc.active ? 'Revoke Access' : 'Restore Access'}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<SAManagementApp />);
+    </script>
+</body>
+</html>

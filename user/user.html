@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOCC ROOT | Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --ir-blue: #003399;
+            --ir-gold: #FFD700;
+            --sidebar-width: 288px;
+            --sidebar-min-width: 80px;
+        }
+
+        .sidebar {
+            background-color: var(--ir-blue);
+            width: var(--sidebar-width);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .sidebar.minimized { width: var(--sidebar-min-width); }
+        .sidebar.minimized .nav-text, 
+        .sidebar.minimized .sidebar-header-text,
+        .sidebar.minimized .user-details,
+        .sidebar.minimized .section-label { display: none; }
+        
+        .sidebar.minimized .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+        .sidebar.minimized .sidebar-header { justify-content: center; padding: 1.5rem 0; }
+
+        .nav-item {
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: var(--ir-gold);
+            color: white;
+        }
+
+        .module-btn {
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .module-btn:hover {
+            transform: scale(1.05);
+            border-color: var(--ir-blue);
+            box-shadow: 0 15px 30px -10px rgba(0, 51, 153, 0.15);
+        }
+
+        #header-logo {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .sidebar.minimized ~ .main-content #header-logo { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body class="bg-gray-50 flex h-screen overflow-hidden">
+
+    <aside id="sidebar" class="sidebar flex flex-col flex-shrink-0 z-20">
+        <div class="sidebar-header p-6 flex items-center space-x-3 border-b border-blue-900/50">
+            <div class="bg-white p-2 rounded-lg shadow-lg flex-shrink-0">
+                <i class="fa-solid fa-train-subway text-[#003399] text-xl"></i>
+            </div>
+            <div class="sidebar-header-text overflow-hidden">
+                <h2 class="text-white font-black tracking-tighter text-lg leading-none">NOCC ROOT</h2>
+                <p class="text-blue-300 text-[10px] uppercase font-bold tracking-widest mt-1">Indian Railways</p>
+            </div>
+        </div>
+
+        <button onclick="toggleSidebar()" class="absolute -right-3 top-20 bg-white border border-slate-200 rounded-full w-6 h-6 flex items-center justify-center text-[10px] text-blue-900 shadow-md hover:bg-blue-50 transition-all z-30">
+            <i id="toggle-icon" class="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <nav class="flex-1 mt-6 px-3 space-y-1">
+            <p class="section-label text-blue-400 text-[10px] font-bold uppercase px-4 mb-2 tracking-[0.2em]">Management</p>
+            <a href="#" class="nav-item active flex items-center space-x-3 py-3 px-4 rounded-lg text-white">
+                <i class="fa-solid fa-layer-group w-5 flex-shrink-0"></i>
+                <span class="nav-text text-sm font-bold">Data Modules Hub</span>
+            </a>
+            <a href="digidoc.html" class="nav-item flex items-center space-x-3 py-3 px-4 rounded-lg text-blue-100/70 hover:text-white">
+                <i class="fa-solid fa-copy w-5 flex-shrink-0"></i>
+                <span class="nav-text text-sm font-bold">Digital Document</span>
+            </a>
+            <a href="../pdfs.html" class="nav-item flex items-center space-x-3 py-3 px-4 rounded-lg text-blue-100/70 hover:text-white">
+                <i class="fa-solid fa-file-pdf w-5 flex-shrink-0"></i>
+                <span class="nav-text text-sm font-bold">PDF Documents</span>
+            </a>
+            <a href="userprofile.html" class="nav-item flex items-center space-x-3 py-3 px-4 rounded-lg text-blue-100/70 hover:text-white">
+                <i class="fa fa-user"></i>
+                <span class="nav-text text-sm font-bold">Profile</span>
+            </a>
+        </nav>
+
+        <div class="p-4 bg-black/10 border-t border-blue-900/50">
+            <div class="flex items-center space-x-3 p-2">
+                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-xs">AD</div>
+                <div class="user-details flex-1 overflow-hidden">
+                    <p class="text-xs font-bold text-white truncate"> User</p>
+                    <p class="text-[9px] text-blue-300 uppercase">Authority</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-content flex-1 flex flex-col min-w-0">
+        <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 z-10">
+            <div class="flex items-center space-x-4">
+                <div id="header-logo" class="items-center space-x-3 mr-4">
+                    <i class="fa-solid fa-train-subway text-[#003399] text-xl"></i>
+                    <span class="font-black text-slate-800 tracking-tight">NOCC ROOT</span>
+                </div>
+                <h1 class="text-lg font-black text-slate-800 uppercase tracking-tight hidden md:block">Data Modules Hub</h1>
+                <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded text-[10px] font-black uppercase tracking-widest">Live</span>
+            </div>
+            
+            <div class="flex items-center space-x-6 font-mono">
+                <div id="header-clock" class="text-slate-800 font-bold text-sm">00:00:00</div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-8 bg-gray-50">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Total Modules</p>
+                    <h3 class="text-2xl font-black text-slate-800">3</h3>
+                </div>
+            </div>
+
+            <section class="mb-12">
+                <div class="flex items-center space-x-4 mb-8">
+                    <div class="h-px w-full bg-gradient-to-r from-indigo-500/30 to-transparent"></div>
+                    <h2 class="text-xs font-black uppercase tracking-[0.4em] text-indigo-500 whitespace-nowrap">Technical & Assets Position Module Access</h2>
+                    <div class="h-px w-full bg-gradient-to-r from-transparent to-indigo-500/30"></div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6" id="moduleGrid"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const icon = document.getElementById('toggle-icon');
+            sidebar.classList.toggle('minimized');
+            icon.classList.toggle('fa-chevron-left');
+            icon.classList.toggle('fa-chevron-right');
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('header-clock').textContent = now.toLocaleTimeString('en-GB');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Updated Module Logic
+        const modules = ['FOIS','UTS', 'EARTH'];
+        const grid = document.getElementById('moduleGrid');
+        
+        modules.forEach((mod) => {
+            const btn = document.createElement('button');
+            btn.className = `module-btn py-6 px-4 rounded-2xl flex flex-col items-center justify-center space-y-3 group`;
+            
+            // REDIRECT LOGIC:
+            btn.onclick = () => {
+                if(mod === 'FOIS') {
+                    // Make sure this filename matches your FOIS detail page filename
+                    window.location.href = 'fois_details.html'; 
+                }
+                if(mod === 'UTS') {
+                    // Make sure this filename matches your FOIS detail page filename
+                    window.location.href = 'uts.html'; 
+                }
+                if(mod === 'EARTH') {
+                    // Make sure this filename matches your EARTH detail page filename
+                    window.location.href = 'earthh.html'; 
+                }
+                else {
+                    // Default behavior for other modules
+                    console.log(`Accessing ${mod} Module...`);
+                }
+            };
+
+            btn.innerHTML = `
+                <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-600 transition-colors duration-300">
+                    <i class="fa-solid fa-microchip text-blue-600 text-xl group-hover:text-white transition-all duration-500"></i>
+                </div>
+                <div class="text-center">
+                    <span class="text-xs font-black tracking-widest text-slate-800 group-hover:text-blue-700 uppercase block">${mod}</span>
+                </div>`;
+            grid.appendChild(btn);
+        });
+    </script>
+</body>
+</html>
+
+
+
